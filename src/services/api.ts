@@ -144,8 +144,12 @@ export const getProjects = async (): Promise<Project[]> => {
 }
 
 export const createProject = async (project: Omit<Project, 'id'>): Promise<Project> => {
+  // Remove id field if exists (even if it's 0)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id, createdAt, ...projectData } = project as Project
+  
   // Convert camelCase to snake_case for database
-  const dbProject = toSnakeCase(project)
+  const dbProject = toSnakeCase(projectData)
   
   const { data, error } = await supabase
     .from('projects')
@@ -160,8 +164,12 @@ export const createProject = async (project: Omit<Project, 'id'>): Promise<Proje
 }
 
 export const updateProject = async (id: number, project: Partial<Project>): Promise<Project> => {
+  // Remove id and createdAt from update data
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id: _, createdAt, ...projectData } = project
+  
   // Convert camelCase to snake_case for database
-  const dbProject = toSnakeCase(project)
+  const dbProject = toSnakeCase(projectData)
   
   const { data, error } = await supabase
     .from('projects')
@@ -214,7 +222,9 @@ export const getCertificates = async (): Promise<Certificate[]> => {
 }
 
 export const createCertificate = async (certificate: Omit<Certificate, 'id'>): Promise<Certificate> => {
-  const dbCertificate = toSnakeCase(certificate)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id, createdAt, ...certData } = certificate as Certificate
+  const dbCertificate = toSnakeCase(certData)
   
   const { data, error } = await supabase
     .from('certificates')
@@ -227,7 +237,9 @@ export const createCertificate = async (certificate: Omit<Certificate, 'id'>): P
 }
 
 export const updateCertificate = async (id: number, certificate: Partial<Certificate>): Promise<Certificate> => {
-  const dbCertificate = toSnakeCase(certificate)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id: _, createdAt, ...certData } = certificate
+  const dbCertificate = toSnakeCase(certData)
   
   const { data, error } = await supabase
     .from('certificates')
@@ -275,7 +287,9 @@ export const getTechStack = async (): Promise<TechStack[]> => {
 }
 
 export const createTechStack = async (tech: Omit<TechStack, 'id'>): Promise<TechStack> => {
-  const dbTech = toSnakeCase(tech)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id, createdAt, ...techData } = tech as TechStack
+  const dbTech = toSnakeCase(techData)
   
   const { data, error } = await supabase
     .from('tech_stack')
@@ -288,9 +302,11 @@ export const createTechStack = async (tech: Omit<TechStack, 'id'>): Promise<Tech
 }
 
 export const updateTechStack = async (id: number, tech: Partial<TechStack>): Promise<TechStack> => {
-  const dbTech = toSnakeCase(tech)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id: _, createdAt, ...techData } = tech
+  const dbTech = toSnakeCase(techData)
   
-  const { data, error } = await supabase
+  const { data, error} = await supabase
     .from('tech_stack')
     .update(dbTech)
     .eq('id', id)
