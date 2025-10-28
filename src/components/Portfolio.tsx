@@ -63,6 +63,17 @@ const Portfolio = () => {
   const [editingTechStack, setEditingTechStack] = useState<TechStackItem | null>(null)
   const [showTechModal, setShowTechModal] = useState(false)
 
+  // Debug: Log editingProject changes
+  useEffect(() => {
+    if (editingProject) {
+      console.log('🔍 editingProject changed:', {
+        id: editingProject.id,
+        title: editingProject.title,
+        idType: typeof editingProject.id
+      })
+    }
+  }, [editingProject])
+
   // Load all data from database
   useEffect(() => {
     loadProjects()
@@ -142,7 +153,15 @@ const Portfolio = () => {
   }
 
   const handleEditProject = (project: PortfolioProject) => {
-    setEditingProject(project)
+    console.log('📝 Edit button clicked for project:', project)
+    console.log('📝 Project ID:', project.id, 'Type:', typeof project.id)
+    // Create a deep copy to avoid mutating the original object
+    setEditingProject({
+      ...project,
+      technologies: Array.isArray(project.technologies) 
+        ? [...project.technologies] 
+        : project.technologies
+    })
     setShowEditModal(true)
   }
 
