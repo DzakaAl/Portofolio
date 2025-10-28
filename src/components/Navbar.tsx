@@ -75,7 +75,7 @@ const Navbar = () => {
               className="text-2xl font-bold gradient-text cursor-pointer"
               onClick={() => scrollToSection('#home')}
             >
-              DzakaAl
+              Portofolio
             </motion.div>
 
             {/* Desktop Navigation */}
