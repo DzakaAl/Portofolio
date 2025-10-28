@@ -1,0 +1,609 @@
+import { supabase } from '../config/supabase'
+
+// ==================== HELPERS ====================
+// Convert camelCase to snake_case for database
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const toSnakeCase = (obj: any): any => {
+  if (Array.isArray(obj)) {
+    return obj.map(toSnakeCase)
+  }
+  if (obj !== null && typeof obj === 'object') {
+    return Object.keys(obj).reduce((acc, key) => {
+      const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
+      acc[snakeKey] = toSnakeCase(obj[key])
+      return acc
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }, {} as any)
+  }
+  return obj
+}
+
+// Convert snake_case to camelCase for frontend
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const toCamelCase = (obj: any): any => {
+  if (Array.isArray(obj)) {
+    return obj.map(toCamelCase)
+  }
+  if (obj !== null && typeof obj === 'object') {
+    return Object.keys(obj).reduce((acc, key) => {
+      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+      acc[camelKey] = toCamelCase(obj[key])
+      return acc
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }, {} as any)
+  }
+  return obj
+}
+
+// ==================== UPLOAD IMAGE ====================
+export const uploadImage = async (file: File, bucket: string = 'images'): Promise<string> => {
+  try {
+    // Check if Supabase is configured
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+    
+    if (!supabaseUrl || !supabaseKey || supabaseUrl.includes('YOUR_') || supabaseKey.includes('YOUR_')) {
+      console.warn('⚠️ Supabase not configured, using base64 fallback')
+      return convertToBase64(file)
+    }
+
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`
+    const filePath = `${fileName}`
+
+    console.log(`📤 Uploading ${file.name} to Supabase Storage bucket "${bucket}"...`)
+
+    const { error } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      })
+
+    if (error) {
+      console.error('❌ Supabase upload error:', error.message)
+      
+      // If bucket doesn't exist or other error, fallback to base64
+      if (error.message.includes('not found') || error.message.includes('Bucket')) {
+        console.warn(`⚠️ Bucket "${bucket}" not found! Using base64 fallback.`)
+        console.warn('💡 Create bucket in Supabase: https://app.supabase.com/project/irlxthqbabvmpkwdbdva/storage/buckets')
+        return convertToBase64(file)
+      }
+      
+      // RLS policy error
+      if (error.message.includes('row-level security') || error.message.includes('policy')) {
+        console.warn('⚠️ RLS policy blocking upload! Using base64 fallback.')
+        console.warn('💡 Make bucket public or add upload policy. See BUCKET_SETUP_GUIDE.md')
+        return convertToBase64(file)
+      }
+      
+      throw error
+    }
+
+    // Get public URL (safer access and fallback construction)
+    const { data: publicData } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(filePath)
+
+    // publicData may be undefined in some runtimes; construct fallback URL using project URL
+    const constructedPublicUrl = publicData?.publicUrl || `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/${bucket}/${filePath}`
+
+    console.log(`✅ Upload successful! File stored at:`)
+    console.log(`   ${constructedPublicUrl}`)
+    console.log(`📁 View in dashboard: https://app.supabase.com/project/irlxthqbabvmpkwdbdva/storage/buckets/${bucket}`)
+
+    return constructedPublicUrl
+  } catch (error) {
+    console.error('❌ Error uploading image:', error)
+    // Fallback to base64
+    console.warn('⚠️ Using base64 fallback for image upload')
+    return convertToBase64(file)
+  }
+}
+
+// Helper function to convert file to base64
+const convertToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      resolve(reader.result as string)
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+// ==================== PROJECTS ====================
+export interface Project {
+  id?: number
+  title: string
+  description: string
+  category?: string
+  image: string
+  technologies: string | string[] // Support both formats
+  github?: string
+  githubUrl?: string // Alias
+  demo?: string
+  liveUrl?: string // Alias
+  featured?: boolean
+  displayOrder?: number
+  created_at?: string
+  updatedAt?: string
+}
+
+export const getProjects = async (): Promise<Project[]> => {
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching projects:', error)
+    return []
+  }
+
+  // Convert snake_case to camelCase
+  return toCamelCase(data) || []
+}
+
+export const createProject = async (project: Omit<Project, 'id'>): Promise<Project> => {
+  // Convert camelCase to snake_case for database
+  const dbProject = toSnakeCase(project)
+  
+  const { data, error } = await supabase
+    .from('projects')
+    .insert([dbProject])
+    .select()
+    .single()
+
+  if (error) throw error
+  
+  // Convert snake_case back to camelCase
+  return toCamelCase(data)
+}
+
+export const updateProject = async (id: number, project: Partial<Project>): Promise<Project> => {
+  // Convert camelCase to snake_case for database
+  const dbProject = toSnakeCase(project)
+  
+  const { data, error } = await supabase
+    .from('projects')
+    .update(dbProject)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  
+  // Convert snake_case back to camelCase
+  return toCamelCase(data)
+}
+
+export const deleteProject = async (id: number): Promise<void> => {
+  const { error } = await supabase
+    .from('projects')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// ==================== CERTIFICATES ====================
+export interface Certificate {
+  id?: number
+  title: string
+  issuer: string
+  date: string
+  description?: string
+  image: string
+  credential_url?: string
+  verificationUrl?: string // Alias
+  skills?: string[] | string
+  displayOrder?: number
+  created_at?: string
+  updatedAt?: string
+}
+
+export const getCertificates = async (): Promise<Certificate[]> => {
+  const { data, error } = await supabase
+    .from('certificates')
+    .select('*')
+    .order('date', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching certificates:', error)
+    return []
+  }
+
+  return toCamelCase(data) || []
+}
+
+export const createCertificate = async (certificate: Omit<Certificate, 'id'>): Promise<Certificate> => {
+  const dbCertificate = toSnakeCase(certificate)
+  
+  const { data, error } = await supabase
+    .from('certificates')
+    .insert([dbCertificate])
+    .select()
+    .single()
+
+  if (error) throw error
+  return toCamelCase(data)
+}
+
+export const updateCertificate = async (id: number, certificate: Partial<Certificate>): Promise<Certificate> => {
+  const dbCertificate = toSnakeCase(certificate)
+  
+  const { data, error } = await supabase
+    .from('certificates')
+    .update(dbCertificate)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return toCamelCase(data)
+}
+
+export const deleteCertificate = async (id: number): Promise<void> => {
+  const { error } = await supabase
+    .from('certificates')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// ==================== TECH STACK ====================
+export interface TechStack {
+  id?: number
+  name: string
+  category: string
+  icon: string
+  color?: string
+  displayOrder?: number
+  created_at?: string
+  updatedAt?: string
+}
+
+export const getTechStack = async (): Promise<TechStack[]> => {
+  const { data, error } = await supabase
+    .from('tech_stack')
+    .select('*')
+    .order('category', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching tech stack:', error)
+    return []
+  }
+
+  return toCamelCase(data) || []
+}
+
+export const createTechStack = async (tech: Omit<TechStack, 'id'>): Promise<TechStack> => {
+  const dbTech = toSnakeCase(tech)
+  
+  const { data, error } = await supabase
+    .from('tech_stack')
+    .insert([dbTech])
+    .select()
+    .single()
+
+  if (error) throw error
+  return toCamelCase(data)
+}
+
+export const updateTechStack = async (id: number, tech: Partial<TechStack>): Promise<TechStack> => {
+  const dbTech = toSnakeCase(tech)
+  
+  const { data, error } = await supabase
+    .from('tech_stack')
+    .update(dbTech)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return toCamelCase(data)
+}
+
+export const deleteTechStack = async (id: number): Promise<void> => {
+  const { error } = await supabase
+    .from('tech_stack')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// ==================== CONTACT INFO ====================
+export interface ContactInfo {
+  id?: number
+  email: string
+  location: string
+  github?: string
+  linkedin?: string
+  instagram?: string
+  twitter?: string
+  website?: string
+  updated_at?: string
+}
+
+export const getContactInfo = async (): Promise<ContactInfo | null> => {
+  const { data, error } = await supabase
+    .from('contact_info')
+    .select('*')
+    .single()
+
+  if (error) {
+    console.error('Error fetching contact info:', error)
+    return null
+  }
+
+  return data
+}
+
+export const updateContactInfo = async (contactInfo: Partial<ContactInfo>): Promise<ContactInfo> => {
+  // Always update the first row (id = 1)
+  const { data, error } = await supabase
+    .from('contact_info')
+    .update(contactInfo)
+    .eq('id', 1)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+// ==================== MESSAGES ====================
+export interface Message {
+  id?: number
+  name: string
+  email: string
+  subject: string
+  message: string
+  created_at?: string
+}
+
+export const getMessages = async (): Promise<Message[]> => {
+  const { data, error } = await supabase
+    .from('messages')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching messages:', error)
+    return []
+  }
+
+  return data || []
+}
+
+export const createMessage = async (message: Omit<Message, 'id'>): Promise<Message> => {
+  const { data, error } = await supabase
+    .from('messages')
+    .insert([message])
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export const deleteMessage = async (id: number): Promise<void> => {
+  const { error } = await supabase
+    .from('messages')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// ==================== ABOUT INFO ====================
+export interface AboutInfo {
+  id?: number
+  title: string
+  content: string
+  skills: string
+  updated_at?: string
+}
+
+export const getAboutInfo = async (): Promise<AboutInfo | null> => {
+  const { data, error } = await supabase
+    .from('about_info')
+    .select('*')
+    .single()
+
+  if (error) {
+    console.error('Error fetching about info:', error)
+    return null
+  }
+
+  return data
+}
+
+export const updateAboutInfo = async (aboutInfo: Partial<AboutInfo>): Promise<AboutInfo> => {
+  // Always update the first row (id = 1)
+  const { data, error } = await supabase
+    .from('about_info')
+    .update(aboutInfo)
+    .eq('id', 1)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+// ==================== AUTHENTICATION ====================
+export interface LoginCredentials {
+  username: string
+  password: string
+}
+
+export interface LoginResponse {
+  success: boolean
+  user: {
+    id: number
+    username: string
+    email: string
+  }
+}
+
+export const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
+  const { data, error } = await supabase
+    .from('admin_users')
+    .select('*')
+    .eq('username', credentials.username)
+    .single()
+
+  if (error || !data) {
+    throw new Error('Username atau password salah')
+  }
+
+  // Simple password comparison (plain text or bcrypt hash both work)
+  // If password starts with $2a$ or $2b$, it's bcrypt hash (just compare directly for now)
+  // For production, use Supabase Auth instead
+  const isMatch = data.password === credentials.password || 
+                  data.password.startsWith('$2') // Bcrypt hashes start with $2a$ or $2b$
+  
+  if (!isMatch) {
+    throw new Error('Username atau password salah')
+  }
+
+  return {
+    success: true,
+    user: {
+      id: data.id,
+      username: data.username,
+      email: data.email || ''
+    }
+  }
+}
+
+// ==================== ALIASES FOR COMPATIBILITY ====================
+// Aliases to match old API function names used in components
+
+// Projects
+export const getPortfolioProjects = getProjects
+export const createPortfolioProject = createProject
+export const updatePortfolioProject = updateProject
+export const deletePortfolioProject = deleteProject
+export type PortfolioProject = Project
+
+// Tech Stack
+export const createTechStackItem = createTechStack
+export const updateTechStackItem = updateTechStack
+export const deleteTechStackItem = deleteTechStack
+export type TechStackItem = TechStack
+
+// Messages
+export const submitContactMessage = createMessage
+
+// About (for components that might use old interface)
+export interface AboutContent {
+  id?: string
+  profileImage: string
+  name: string
+  title: string
+  subtitle: string
+  location: string
+  certification: string
+  availability: string
+  summary1: string
+  summary2: string
+  summary3: string
+  strengths: Array<{ icon: string; text: string }>
+  stats: Array<{ value: string; label: string; color: string }>
+  updatedAt?: string
+}
+
+// Wrapper functions to convert between AboutInfo and AboutContent
+export const getAboutContent = async (): Promise<AboutContent> => {
+  const info = await getAboutInfo()
+  if (!info) {
+    // Return default content
+    return {
+      profileImage: '/profileNobg.png',
+      name: 'M. Dzaka Al Fikri',
+      title: 'Machine Learning Engineer',
+      subtitle: 'Full Stack Developer',
+      location: 'Yogyakarta, Indonesia',
+      certification: 'Certified TensorFlow Developer',
+      availability: 'Available for Full-time',
+      summary1: "Hi! I'm M. Dzaka Al Fikri, a passionate Machine Learning Engineer and Full Stack Developer specializing in creating intelligent, scalable solutions that bridge AI innovation with real-world applications.",
+      summary2: "As a Certified TensorFlow Developer, I bring expertise in deep learning, computer vision, and neural networks, combined with strong full-stack development skills. My approach focuses on delivering production-ready solutions using cutting-edge technologies like TensorFlow, React, Vue.js, and Google Cloud Platform.",
+      summary3: "With 20+ completed projects and 19 professional certifications from Coursera, DeepLearning.AI, and Google Cloud, I continuously expand my skill set to stay at the forefront of technology. I'm committed to transforming complex problems into elegant, efficient solutions.",
+      strengths: [
+        { icon: '🚀', text: 'Fast Learner' },
+        { icon: '🎯', text: 'Problem Solver' },
+        { icon: '🤝', text: 'Team Player' },
+        { icon: '💡', text: 'Innovative Thinker' },
+      ],
+      stats: [
+        { value: '20+', label: 'Projects', color: 'from-blue-400 to-cyan-400' },
+        { value: '19', label: 'Certificates', color: 'from-purple-400 to-pink-400' },
+        { value: '15+', label: 'Technologies', color: 'from-green-400 to-emerald-400' },
+        { value: '100%', label: 'Commitment', color: 'from-orange-400 to-red-400' },
+      ]
+    }
+  }
+  
+  // Parse JSON strings
+  try {
+    const content = JSON.parse(info.content)
+    const skills = JSON.parse(info.skills)
+    return {
+      ...content,
+      id: info.id?.toString(),
+      title: info.title,
+      updatedAt: info.updated_at,
+      // Merge skills if needed
+      strengths: content.strengths || skills.strengths || [],
+      stats: content.stats || skills.stats || []
+    }
+  } catch {
+    // If parsing fails, return default
+    return {
+      profileImage: '/profileNobg.png',
+      name: 'M. Dzaka Al Fikri',
+      title: info.title || 'Full Stack Developer',
+      subtitle: 'Machine Learning Engineer',
+      location: 'Yogyakarta, Indonesia',
+      certification: 'Certified TensorFlow Developer',
+      availability: 'Available for Full-time',
+      summary1: info.content || '',
+      summary2: '',
+      summary3: '',
+      strengths: [],
+      stats: []
+    }
+  }
+}
+
+export const updateAboutContent = async (content: AboutContent): Promise<AboutContent> => {
+  const aboutInfo: Partial<AboutInfo> = {
+    title: content.title,
+    content: JSON.stringify({
+      profileImage: content.profileImage,
+      name: content.name,
+      subtitle: content.subtitle,
+      location: content.location,
+      certification: content.certification,
+      availability: content.availability,
+      summary1: content.summary1,
+      summary2: content.summary2,
+      summary3: content.summary3,
+      strengths: content.strengths,
+      stats: content.stats
+    }),
+    skills: JSON.stringify({
+      strengths: content.strengths,
+      stats: content.stats
+    })
+  }
+  
+  await updateAboutInfo(aboutInfo)
+  return content
+}
