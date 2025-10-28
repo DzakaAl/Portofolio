@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Github, Instagram, Mail, Download, ChevronDown } from 'lucide-react'
+import ProfileCard from './ProfileCard'
 
 const Hero = () => {
   const [currentTitle, setCurrentTitle] = useState(0)
@@ -16,7 +17,7 @@ const Hero = () => {
     github: "https://github.com/DzakaAl",
     linkedin: "https://www.linkedin.com/in/m-dzaka-al-fikri-7bba421a4/",
     instagram: "https://www.instagram.com/moredzl/",
-    avatar: "https://avatars.githubusercontent.com/u/121382679?v=4"
+    avatar: "https://irlxthqbabvmpkwdbdva.supabase.co/storage/v1/object/public/images/profileNobg-photoaidcom-greyscale.png"
   }
   
   const titles = useMemo(() => [
@@ -185,51 +186,28 @@ const Hero = () => {
             </motion.div>
           </motion.div>
 
-          {/* Right Content - Avatar */}
+          {/* Right Content - 3D ProfileCard */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="flex justify-center lg:justify-end"
           >
-            <motion.div
-              animate={{ 
-                y: [0, -20, 0],
+            <ProfileCard
+              avatarUrl={personalInfo.avatar}
+              miniAvatarUrl={personalInfo.avatar}
+              name={personalInfo.name}
+              title="Data Scientist & Web Developer"
+              handle="dzakaal"
+              status="Available for work"
+              contactText="Contact Me"
+              onContactClick={() => {
+                const contactSection = document.getElementById('contact');
+                contactSection?.scrollIntoView({ behavior: 'smooth' });
               }}
-              transition={{
-                duration: 6,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="relative"
-            >
-              <div className="w-80 h-80 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 p-1">
-                <div className="w-full h-full rounded-full bg-dark-200 p-4">
-                  <img
-                    src={personalInfo.avatar}
-                    alt={personalInfo.name}
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                </div>
-              </div>
-              
-              {/* Floating Elements */}
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                className="absolute -top-4 -right-4 w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center"
-              >
-                <span className="text-2xl">⚛️</span>
-              </motion.div>
-              
-              <motion.div
-                animate={{ rotate: -360 }}
-                transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                className="absolute -bottom-4 -left-4 w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center"
-              >
-                <span className="text-xl">🚀</span>
-              </motion.div>
-            </motion.div>
+              enableTilt={true}
+              showBehindGradient={true}
+            />
           </motion.div>
         </div>
       </div>
