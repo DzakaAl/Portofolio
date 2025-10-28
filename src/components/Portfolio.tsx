@@ -190,13 +190,13 @@ const Portfolio = () => {
       
       console.log('💾 Saving project with ID:', editingProject.id)
       
-      // Check if it's a new project (no ID or ID is undefined/null)
-      if (!editingProject.id) {
+      // Check if it's a new project (ID is undefined or null, NOT 0)
+      if (editingProject.id === undefined || editingProject.id === null) {
         // Create new project
         console.log('➕ Creating new project:', editingProject)
         await createPortfolioProject(editingProject)
       } else {
-        // Update existing project
+        // Update existing project (even if ID is 0)
         console.log('✏️ Updating project ID:', editingProject.id, editingProject)
         await updatePortfolioProject(editingProject.id, editingProject)
       }
@@ -998,7 +998,7 @@ const Portfolio = () => {
               >
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-2xl font-bold text-white">
-                    {!editingProject.id ? 'Add New Project' : 'Edit Project'}
+                    {(editingProject.id === undefined || editingProject.id === null) ? 'Add New Project' : 'Edit Project'}
                   </h3>
                   <motion.button
                     whileHover={{ scale: 1.1 }}
@@ -1348,7 +1348,7 @@ const Portfolio = () => {
               >
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-2xl font-bold text-white">
-                    {!editingTechStack.id ? 'Add New Technology' : 'Edit Technology'}
+                    {(editingTechStack.id === undefined || editingTechStack.id === null) ? 'Add New Technology' : 'Edit Technology'}
                   </h3>
                   <motion.button
                     whileHover={{ scale: 1.1 }}
