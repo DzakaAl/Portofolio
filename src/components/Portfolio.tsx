@@ -140,7 +140,6 @@ const Portfolio = () => {
 
   const handleAddProject = () => {
     setEditingProject({
-      id: 0,
       title: '',
       description: '',
       category: 'Web Development',
@@ -191,16 +190,15 @@ const Portfolio = () => {
       
       console.log('💾 Saving project with ID:', editingProject.id)
       
-      if (editingProject.id === 0) {
+      // Check if it's a new project (no ID or ID is undefined/null)
+      if (!editingProject.id) {
         // Create new project
         console.log('➕ Creating new project:', editingProject)
         await createPortfolioProject(editingProject)
       } else {
         // Update existing project
-        if (editingProject.id) {
-          console.log('✏️ Updating project ID:', editingProject.id, editingProject)
-          await updatePortfolioProject(editingProject.id, editingProject)
-        }
+        console.log('✏️ Updating project ID:', editingProject.id, editingProject)
+        await updatePortfolioProject(editingProject.id, editingProject)
       }
 
       await loadProjects()
@@ -1000,7 +998,7 @@ const Portfolio = () => {
               >
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-2xl font-bold text-white">
-                    {editingProject.id === 0 ? 'Add New Project' : 'Edit Project'}
+                    {!editingProject.id ? 'Add New Project' : 'Edit Project'}
                   </h3>
                   <motion.button
                     whileHover={{ scale: 1.1 }}
@@ -1350,7 +1348,7 @@ const Portfolio = () => {
               >
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-2xl font-bold text-white">
-                    {editingTechStack.id === 0 ? 'Add New Technology' : 'Edit Technology'}
+                    {!editingTechStack.id ? 'Add New Technology' : 'Edit Technology'}
                   </h3>
                   <motion.button
                     whileHover={{ scale: 1.1 }}
