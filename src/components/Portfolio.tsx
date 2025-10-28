@@ -168,12 +168,16 @@ const Portfolio = () => {
     try {
       setIsSaving(true)
       
+      console.log('💾 Saving project with ID:', editingProject.id)
+      
       if (editingProject.id === 0) {
         // Create new project
+        console.log('➕ Creating new project:', editingProject)
         await createPortfolioProject(editingProject)
       } else {
         // Update existing project
         if (editingProject.id) {
+          console.log('✏️ Updating project ID:', editingProject.id, editingProject)
           await updatePortfolioProject(editingProject.id, editingProject)
         }
       }
