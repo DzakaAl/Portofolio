@@ -121,14 +121,11 @@ export interface Project {
   category?: string
   image: string
   technologies: string | string[] // Support both formats
-  github?: string
-  githubUrl?: string // Alias
-  demo?: string
-  liveUrl?: string // Alias
+  githubUrl?: string
+  liveUrl?: string
   featured?: boolean
   displayOrder?: number
-  created_at?: string
-  updatedAt?: string
+  createdAt?: string
 }
 
 export const getProjects = async (): Promise<Project[]> => {
@@ -196,12 +193,10 @@ export interface Certificate {
   date: string
   description?: string
   image: string
-  credential_url?: string
-  verificationUrl?: string // Alias
+  verificationUrl?: string
   skills?: string[] | string
   displayOrder?: number
-  created_at?: string
-  updatedAt?: string
+  createdAt?: string
 }
 
 export const getCertificates = async (): Promise<Certificate[]> => {
@@ -262,8 +257,7 @@ export interface TechStack {
   icon: string
   color?: string
   displayOrder?: number
-  created_at?: string
-  updatedAt?: string
+  createdAt?: string
 }
 
 export const getTechStack = async (): Promise<TechStack[]> => {
