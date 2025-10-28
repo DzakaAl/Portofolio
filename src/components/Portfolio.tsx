@@ -122,6 +122,8 @@ const Portfolio = () => {
     try {
       setIsLoading(true)
       const data = await getPortfolioProjects()
+      console.log('📦 Loaded projects from database:', data)
+      console.log('📦 First project ID:', data[0]?.id, 'Type:', typeof data[0]?.id)
       setProjects(data)
     } catch (error) {
       console.error('Failed to load projects:', error)
