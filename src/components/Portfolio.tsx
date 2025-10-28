@@ -63,17 +63,6 @@ const Portfolio = () => {
   const [editingTechStack, setEditingTechStack] = useState<TechStackItem | null>(null)
   const [showTechModal, setShowTechModal] = useState(false)
 
-  // Debug: Log editingProject changes
-  useEffect(() => {
-    if (editingProject) {
-      console.log('🔍 editingProject changed:', {
-        id: editingProject.id,
-        title: editingProject.title,
-        idType: typeof editingProject.id
-      })
-    }
-  }, [editingProject])
-
   // Load all data from database
   useEffect(() => {
     loadProjects()
@@ -122,8 +111,6 @@ const Portfolio = () => {
     try {
       setIsLoading(true)
       const data = await getPortfolioProjects()
-      console.log('📦 Loaded projects from database:', data)
-      console.log('📦 First project ID:', data[0]?.id, 'Type:', typeof data[0]?.id)
       setProjects(data)
     } catch (error) {
       console.error('Failed to load projects:', error)
@@ -154,8 +141,6 @@ const Portfolio = () => {
   }
 
   const handleEditProject = (project: PortfolioProject) => {
-    console.log('📝 Edit button clicked for project:', project)
-    console.log('📝 Project ID:', project.id, 'Type:', typeof project.id)
     // Create a deep copy to avoid mutating the original object
     setEditingProject({
       ...project,
@@ -188,16 +173,12 @@ const Portfolio = () => {
     try {
       setIsSaving(true)
       
-      console.log('💾 Saving project with ID:', editingProject.id)
-      
       // Check if it's a new project (ID is undefined or null, NOT 0)
       if (editingProject.id === undefined || editingProject.id === null) {
         // Create new project
-        console.log('➕ Creating new project:', editingProject)
         await createPortfolioProject(editingProject)
       } else {
         // Update existing project (even if ID is 0)
-        console.log('✏️ Updating project ID:', editingProject.id, editingProject)
         await updatePortfolioProject(editingProject.id, editingProject)
       }
 
