@@ -340,20 +340,22 @@ export const getContactInfo = async (): Promise<ContactInfo | null> => {
     return null
   }
 
-  return data
+  return toCamelCase(data)
 }
 
 export const updateContactInfo = async (contactInfo: Partial<ContactInfo>): Promise<ContactInfo> => {
+  const dbContactInfo = toSnakeCase(contactInfo)
+  
   // Always update the first row (id = 1)
   const { data, error } = await supabase
     .from('contact_info')
-    .update(contactInfo)
+    .update(dbContactInfo)
     .eq('id', 1)
     .select()
     .single()
 
   if (error) throw error
-  return data
+  return toCamelCase(data)
 }
 
 // ==================== MESSAGES ====================
@@ -377,18 +379,20 @@ export const getMessages = async (): Promise<Message[]> => {
     return []
   }
 
-  return data || []
+  return toCamelCase(data) || []
 }
 
 export const createMessage = async (message: Omit<Message, 'id'>): Promise<Message> => {
+  const dbMessage = toSnakeCase(message)
+  
   const { data, error } = await supabase
     .from('messages')
-    .insert([message])
+    .insert([dbMessage])
     .select()
     .single()
 
   if (error) throw error
-  return data
+  return toCamelCase(data)
 }
 
 export const deleteMessage = async (id: number): Promise<void> => {
@@ -420,20 +424,26 @@ export const getAboutInfo = async (): Promise<AboutInfo | null> => {
     return null
   }
 
-  return data
+  // Convert snake_case to camelCase
+  return toCamelCase(data)
 }
 
 export const updateAboutInfo = async (aboutInfo: Partial<AboutInfo>): Promise<AboutInfo> => {
+  // Convert camelCase to snake_case for database
+  const dbAboutInfo = toSnakeCase(aboutInfo)
+  
   // Always update the first row (id = 1)
   const { data, error } = await supabase
     .from('about_info')
-    .update(aboutInfo)
+    .update(dbAboutInfo)
     .eq('id', 1)
     .select()
     .single()
 
   if (error) throw error
-  return data
+  
+  // Convert snake_case back to camelCase
+  return toCamelCase(data)
 }
 
 // ==================== AUTHENTICATION ====================
