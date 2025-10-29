@@ -122,8 +122,7 @@ const Navbar = () => {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => {
                         const baseUrl = import.meta.env.BASE_URL || '/'
-                        const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
-                        window.location.href = `${window.location.origin}${cleanBase}/admin`
+                        window.location.href = baseUrl + 'admin'
                       }}
                       className="relative flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg transition-all"
                     >
@@ -167,8 +166,7 @@ const Navbar = () => {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => {
                     const baseUrl = import.meta.env.BASE_URL || '/'
-                    const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
-                    window.location.href = `${window.location.origin}${cleanBase}/admin`
+                    window.location.href = baseUrl + 'admin'
                   }}
                   className="relative p-2"
                   title="Messages"
