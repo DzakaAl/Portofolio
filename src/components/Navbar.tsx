@@ -120,7 +120,10 @@ const Navbar = () => {
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => window.location.href = `${import.meta.env.BASE_URL}admin`}
+                      onClick={() => {
+                        const baseUrl = import.meta.env.BASE_URL || '/'
+                        window.location.href = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'admin'
+                      }}
                       className="relative flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg transition-all"
                     >
                       <Mail size={16} />
@@ -161,7 +164,10 @@ const Navbar = () => {
               {isAdmin && (
                 <motion.button
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => window.location.href = `${import.meta.env.BASE_URL}admin`}
+                  onClick={() => {
+                    const baseUrl = import.meta.env.BASE_URL || '/'
+                    window.location.href = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'admin'
+                  }}
                   className="relative p-2"
                   title="Messages"
                 >
