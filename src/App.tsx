@@ -12,9 +12,12 @@ function App() {
   const [currentPage, setCurrentPage] = useState('home')
 
   useEffect(() => {
-    // Check URL path
+    // Check URL path (handle both local and GitHub Pages base URL)
     const path = window.location.pathname
-    if (path === '/admin') {
+    const basePath = import.meta.env.BASE_URL || '/'
+    const relativePath = path.replace(basePath, '/')
+    
+    if (relativePath === '/admin' || path.endsWith('/admin')) {
       setCurrentPage('admin')
     } else {
       setCurrentPage('home')
@@ -32,7 +35,10 @@ function App() {
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname
-      if (path === '/admin') {
+      const basePath = import.meta.env.BASE_URL || '/'
+      const relativePath = path.replace(basePath, '/')
+      
+      if (relativePath === '/admin' || path.endsWith('/admin')) {
         setCurrentPage('admin')
       } else {
         setCurrentPage('home')
