@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Mail } from 'lucide-react'
 import { isAuthenticated, logout } from '../utils/auth'
-import AdminMessagesIGStyle from './AdminMessagesIGStyle'
+import AdminMessages from './AdminMessages'
 import AdminLogin from './AdminLogin'
 
 const AdminPanel = () => {
@@ -81,7 +81,7 @@ const AdminPanel = () => {
   return (
     <div className="h-screen overflow-hidden bg-gray-900">
       {/* Full Screen Content - No Header, No Padding */}
-      <AdminMessagesIGStyle onLogout={handleLogout} onBackToHome={handleBackToHome} />
+      <AdminMessages onLogout={handleLogout} onBackToHome={handleBackToHome} />
     </div>
   )
 }
