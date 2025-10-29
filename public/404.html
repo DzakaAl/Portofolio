@@ -9,9 +9,15 @@
     <!-- SPA Redirect for GitHub Pages -->
     <script>
       // Store the current path before redirecting to index.html
-      sessionStorage.setItem('redirect', location.pathname + location.search + location.hash);
-      // Redirect to index.html
-      location.replace(location.origin + '/');
+      var redirect = location.pathname + location.search + location.hash;
+      sessionStorage.setItem('redirect', redirect);
+      
+      // Get base path from current pathname (e.g., /Portofolio/)
+      var segments = location.pathname.split('/').filter(Boolean);
+      var basePath = segments.length > 0 ? '/' + segments[0] + '/' : '/';
+      
+      // Redirect to index.html with correct base path
+      location.replace(location.origin + basePath);
     </script>
   </head>
   <body>
