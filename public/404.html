@@ -6,13 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>M. Dzaka Al Fikri - Portfolio</title>
     
-    <!-- Redirect to index.html for SPA routing -->
+    <!-- SPA Redirect for GitHub Pages -->
     <script>
-      sessionStorage.redirect = location.href;
+      // Store the current path before redirecting to index.html
+      sessionStorage.setItem('redirect', location.pathname + location.search + location.hash);
+      // Redirect to index.html
+      location.replace(location.origin + '/');
     </script>
-    <meta http-equiv="refresh" content="0;URL='/'">
   </head>
   <body>
-    <div id="root"></div>
+    <div style="text-align: center; padding: 50px; font-family: sans-serif;">
+      <h2>Redirecting...</h2>
+      <p>Please wait while we redirect you to the correct page.</p>
+    </div>
   </body>
 </html>
