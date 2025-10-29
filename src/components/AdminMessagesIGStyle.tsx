@@ -1,12 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Mail, Trash2, Calendar, ArrowLeft, Search, X, CheckCheck } from 'lucide-react'
+import { Mail, Trash2, Calendar, ArrowLeft, Search, X, CheckCheck, Home, LogOut } from 'lucide-react'
 import { getContactMessages, deleteContactMessage, markMessageAsRead, type ContactMessage } from '../services/api'
 import { useToast } from '../hooks/useToast'
 import Toast from './Toast'
 import ConfirmDialog from './ConfirmDialog'
 
-const AdminMessagesIGStyle = () => {
+interface AdminMessagesIGStyleProps {
+  onLogout?: () => void
+  onBackToHome?: () => void
+}
+
+const AdminMessagesIGStyle = ({ onLogout, onBackToHome }: AdminMessagesIGStyleProps) => {
   const [messages, setMessages] = useState<ContactMessage[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null)
@@ -129,7 +134,7 @@ const AdminMessagesIGStyle = () => {
   }
 
   return (
-    <div className="h-screen bg-dark-300">
+    <div className="h-screen bg-gray-900 flex flex-col">
       <Toast {...toast} onClose={hideToast} />
 
       {/* Confirm Dialog */}
@@ -144,10 +149,44 @@ const AdminMessagesIGStyle = () => {
         onCancel={() => setConfirmDialog({ isOpen: false, messageId: null })}
         type="danger"
       />
+
+      {/* Top Header Bar with Home & Logout */}
+      <div className="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+            <Mail size={20} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-white">Admin Panel</h1>
+            <p className="text-xs text-gray-400">Message Management</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {onBackToHome && (
+            <button
+              onClick={onBackToHome}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all"
+            >
+              <Home size={18} />
+              <span className="hidden sm:inline">Home</span>
+            </button>
+          )}
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all"
+            >
+              <LogOut size={18} />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          )}
+        </div>
+      </div>
       
-      <div className="h-full flex items-center justify-center p-2 sm:p-4">
-        {/* IG DM Style Layout */}
-        <div className="w-full max-w-[1400px] h-[calc(100vh-100px)] sm:h-[calc(100vh-120px)] bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-2xl rounded-xl sm:rounded-2xl border border-gray-700/30 overflow-hidden shadow-2xl">
+      {/* Full Screen Message Layout - No Padding, No Border Radius */}
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full bg-gray-900">
           <div className="grid grid-cols-12 h-full">
             {/* Left Sidebar - Messages List */}
             <div className={`${selectedMessage ? 'hidden lg:flex' : 'flex'} col-span-12 lg:col-span-4 border-r border-gray-700/30 flex-col bg-gray-900/40`}>
