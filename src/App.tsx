@@ -57,7 +57,7 @@ function App() {
       <div className="min-h-screen bg-gradient-to-br from-dark-300 via-dark-200 to-dark-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-500 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-white">Loading Portfolio...</h2>
+          <h2 className="text-xl font-semibold text-white">Loading...</h2>
         </div>
       </div>
     )
