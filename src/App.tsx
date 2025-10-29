@@ -15,9 +15,12 @@ function App() {
     // Check URL path (handle both local and GitHub Pages base URL)
     const path = window.location.pathname
     const basePath = import.meta.env.BASE_URL || '/'
-    const relativePath = path.replace(basePath, '/')
+    // Remove base path and clean up slashes
+    const relativePath = path.replace(basePath, '/').replace(/\/+/g, '/')
     
-    if (relativePath === '/admin' || path.endsWith('/admin')) {
+    console.log('Current path:', path, 'Base:', basePath, 'Relative:', relativePath)
+    
+    if (relativePath.includes('admin') || path.includes('admin')) {
       setCurrentPage('admin')
     } else {
       setCurrentPage('home')
@@ -36,9 +39,9 @@ function App() {
     const handlePopState = () => {
       const path = window.location.pathname
       const basePath = import.meta.env.BASE_URL || '/'
-      const relativePath = path.replace(basePath, '/')
+      const relativePath = path.replace(basePath, '/').replace(/\/+/g, '/')
       
-      if (relativePath === '/admin' || path.endsWith('/admin')) {
+      if (relativePath.includes('admin') || path.includes('admin')) {
         setCurrentPage('admin')
       } else {
         setCurrentPage('home')
