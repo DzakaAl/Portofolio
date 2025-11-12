@@ -6,7 +6,7 @@
 ![Vite](https://img.shields.io/badge/Vite-4.5-646cff?logo=vite)
 ![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?logo=supabase)
 
-Sebuah website portofolio modern dan interaktif dibuat dengan React + TypeScript, Tailwind CSS, dan Supabase. Menyertakan panel admin untuk manajemen konten, inbox pesan bergaya Instagram, serta fitur CRUD untuk proyek, sertifikat, dan tech stack.
+Sebuah website portofolio modern dan interaktif dibuat dengan React + TypeScript, Tailwind CSS, dan Supabase. Menyertakan panel admin untuk manajemen konten, inbox pesan, serta fitur CRUD untuk proyek, sertifikat, dan tech stack.
 
 Live demo: https://dzakaal.github.io/Portofolio/
 
@@ -26,7 +26,7 @@ Untuk admin:
 - Mode edit untuk memperbarui About, Portfolio, Contact secara real-time
 - CRUD untuk proyek dan sertifikat (dengan upload gambar)
 - Manajemen tech stack (ikon + warna + profisiensi)
-- Inbox pesan bergaya Instagram dengan pencarian & filter
+- Inbox pesan dengan pencarian & filter
 - Notifikasi (toast) dan dialog konfirmasi untuk operasi sensitif
 
 ---
@@ -42,11 +42,6 @@ Frontend:
 
 Backend / Database:
 - Supabase (Postgres, storage, RLS, realtime)
-
-Dev & Tooling:
-- ESLint, PostCSS
-- GitHub Actions (CI/CD)
-- GitHub Pages / Vercel / Netlify untuk deployment
 
 ---
 
@@ -149,13 +144,7 @@ Catatan: Jangan gunakan password sederhana di production — gunakan sistem auth
 - Jika gambar tidak muncul, periksa bucket storage & permission di Supabase.
 - Cek console browser & network untuk error API.
 - Untuk deployment CI, pastikan env variables ditambahkan pada Secrets repository.
-
----
-
-## 📄 Lisensi
-
-Project ini dilisensikan di bawah MIT License — lihat file LICENSE.
-
+
 ---
 
 ## 👤 Penulis
@@ -166,11 +155,4 @@ M. Dzaka Al Fikri
 - Instagram: https://www.instagram.com/moredzl/  
 - Email: dzakaal20@gmail.com
 
----
-
-Jika Anda ingin, saya bisa:
-- 1) Membuat versi README lengkap berbahasa Inggris juga, atau
-- 2) Membuat file README yang berbeda untuk versi singkat / versi dokumentasi teknis, atau
-- 3) Menyiapkan dan membuka PR yang menggantikan README.md di repo Anda dengan versi ini.
-
-Beritahu saya mana yang Anda inginkan selanjutnya.
+---
