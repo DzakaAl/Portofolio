@@ -117,7 +117,7 @@ export const getProjects = async (): Promise<Project[]> => {
   const { data, error } = await supabase
     .from('projects')
     .select('*')
-    .order('created_at', { ascending: false })
+    .order('display_order', { ascending: true })
 
   if (error) {
     return []
@@ -195,7 +195,7 @@ export const getCertificates = async (): Promise<Certificate[]> => {
   const { data, error } = await supabase
     .from('certificates')
     .select('*')
-    .order('date', { ascending: false })
+    .order('display_order', { ascending: true })
 
   if (error) {
     return []
@@ -259,7 +259,7 @@ export const getTechStack = async (): Promise<TechStack[]> => {
   const { data, error } = await supabase
     .from('tech_stack')
     .select('*')
-    .order('category', { ascending: true })
+    .order('display_order', { ascending: true })
 
   if (error) {
     return []
