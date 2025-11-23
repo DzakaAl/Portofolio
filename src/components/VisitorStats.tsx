@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Users, Eye, TrendingUp, Activity } from 'lucide-react'
-import { getVisitorStats, getPageViewsByPage, type VisitorStats as VisitorStatsType } from '../services/api'
+import { Users, Eye, TrendingUp, Activity, Monitor, Smartphone, Tablet, Globe } from 'lucide-react'
+import { getVisitorStats, getPageViewsByPage, getVisitorActivities, type VisitorStats as VisitorStatsType, type VisitorActivity } from '../services/api'
 
 const VisitorStats = () => {
   const [stats, setStats] = useState<VisitorStatsType>({
@@ -11,6 +11,7 @@ const VisitorStats = () => {
     todayPageViews: 0
   })
   const [pageViews, setPageViews] = useState<Record<string, number>>({})
+  const [activities, setActivities] = useState<VisitorActivity[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -22,12 +23,14 @@ const VisitorStats = () => {
 
   const loadStats = async () => {
     try {
-      const [statsData, pageViewsData] = await Promise.all([
+      const [statsData, pageViewsData, activitiesData] = await Promise.all([
         getVisitorStats(),
-        getPageViewsByPage()
+        getPageViewsByPage(),
+        getVisitorActivities()
       ])
       setStats(statsData)
       setPageViews(pageViewsData)
+      setActivities(activitiesData)
     } catch (error) {
       
     } finally {
@@ -145,6 +148,95 @@ const VisitorStats = () => {
                   </div>
                 )
               })}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Visitor Activities Table */}
+      {activities.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="glass-effect rounded-xl p-6 overflow-hidden"
+        >
+          <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+            <Activity size={20} className="text-primary-400" />
+            Visitor Activities
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-700">
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">Device</th>
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">Browser</th>
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">OS</th>
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">Visits</th>
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">Pages Viewed</th>
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">Last Visit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activities.map((activity, index) => {
+                  const DeviceIcon = activity.device === 'Mobile' ? Smartphone : 
+                                    activity.device === 'Tablet' ? Tablet : Monitor
+                  
+                  return (
+                    <motion.tr
+                      key={activity.visitorId}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
+                    >
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          <DeviceIcon size={16} className="text-primary-400" />
+                          <span className="text-gray-300 text-sm">{activity.device}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="text-gray-300 text-sm">{activity.browser}</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          <Globe size={14} className="text-gray-500" />
+                          <span className="text-gray-300 text-sm">{activity.os}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="text-white font-semibold text-sm">{activity.visitCount}</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex flex-wrap gap-1">
+                          {activity.pagesVisited.map((page, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 bg-primary-500/20 text-primary-300 rounded text-xs capitalize"
+                            >
+                              {page}
+                            </span>
+                          ))}
+                          <span className="text-gray-500 text-xs self-center ml-1">
+                            ({activity.totalPageViews} views)
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="text-gray-400 text-sm">
+                          {new Date(activity.lastVisit).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </td>
+                    </motion.tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         </motion.div>
       )}

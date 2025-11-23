@@ -710,6 +710,18 @@ export interface VisitorStats {
   todayPageViews: number
 }
 
+export interface VisitorActivity {
+  visitorId: string
+  device: string
+  browser: string
+  os: string
+  firstVisit: string
+  lastVisit: string
+  visitCount: number
+  pagesVisited: string[]
+  totalPageViews: number
+}
+
 // Generate or get visitor ID from localStorage
 const getVisitorId = (): string => {
   let visitorId = localStorage.getItem('visitorId')
@@ -856,11 +868,10 @@ export const getPageViewsByPage = async (): Promise<Record<string, number>> => {
     const { data } = await supabase
       .from('page_views')
       .select('page_name')
-      .neq('visitor_id', 'admin_session') // Exclude admin
+      .neq('visitor_id', 'admin_session')
 
     if (!data) return {}
 
-    // Count views by page name
     const viewsByPage: Record<string, number> = {}
     data.forEach((view) => {
       viewsByPage[view.page_name] = (viewsByPage[view.page_name] || 0) + 1
@@ -869,6 +880,79 @@ export const getPageViewsByPage = async (): Promise<Record<string, number>> => {
     return viewsByPage
   } catch (error) {
     return {}
+  }
+}
+
+const parseUserAgent = (userAgent: string) => {
+  const ua = userAgent.toLowerCase()
+  
+  let device = 'Desktop'
+  if (/mobile|android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(ua)) {
+    if (/ipad|tablet/i.test(ua)) {
+      device = 'Tablet'
+    } else {
+      device = 'Mobile'
+    }
+  }
+  
+  let browser = 'Unknown'
+  if (ua.includes('firefox')) browser = 'Firefox'
+  else if (ua.includes('edg')) browser = 'Edge'
+  else if (ua.includes('chrome')) browser = 'Chrome'
+  else if (ua.includes('safari')) browser = 'Safari'
+  else if (ua.includes('opera')) browser = 'Opera'
+  
+  let os = 'Unknown'
+  if (ua.includes('windows')) os = 'Windows'
+  else if (ua.includes('mac')) os = 'macOS'
+  else if (ua.includes('linux')) os = 'Linux'
+  else if (ua.includes('android')) os = 'Android'
+  else if (ua.includes('ios') || ua.includes('iphone') || ua.includes('ipad')) os = 'iOS'
+  
+  return { device, browser, os }
+}
+
+export const getVisitorActivities = async (): Promise<VisitorActivity[]> => {
+  try {
+    const { data: visitors } = await supabase
+      .from('visitor_analytics')
+      .select('*')
+      .neq('visitor_id', 'admin_session')
+      .order('last_visit', { ascending: false })
+      .limit(50)
+
+    if (!visitors) return []
+
+    const activities: VisitorActivity[] = await Promise.all(
+      visitors.map(async (visitor) => {
+        const { data: pageViews } = await supabase
+          .from('page_views')
+          .select('page_name')
+          .eq('visitor_id', visitor.visitor_id)
+
+        const pagesVisited = Array.from(
+          new Set(pageViews?.map(pv => pv.page_name) || [])
+        )
+
+        const { device, browser, os } = parseUserAgent(visitor.user_agent || '')
+
+        return {
+          visitorId: visitor.visitor_id,
+          device,
+          browser,
+          os,
+          firstVisit: visitor.first_visit,
+          lastVisit: visitor.last_visit,
+          visitCount: visitor.visit_count || 0,
+          pagesVisited,
+          totalPageViews: pageViews?.length || 0
+        }
+      })
+    )
+
+    return activities
+  } catch (error) {
+    return []
   }
 }
 
