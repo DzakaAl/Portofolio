@@ -1,6 +1,13 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Github, ExternalLink, Star, Calendar, Code2, Users, GitBranch } from 'lucide-react'
-import { useEffect } from 'react'
+import { X, Github, ExternalLink, Star, Calendar, Code2, Users, GitBranch, Award } from 'lucide-react'
+import { useEffect, useState } from 'react'
+
+interface GitHubStats {
+  commits: number
+  contributors: number
+  lastUpdate: string
+  stars: number
+}
 
 interface Project {
   id: number
@@ -11,6 +18,8 @@ interface Project {
   live: string
   stars: number
   category: string
+  image?: string
+  featured?: boolean
 }
 
 interface ProjectDetailModalProps {
@@ -20,6 +29,64 @@ interface ProjectDetailModalProps {
 }
 
 const ProjectDetailModal = ({ project, isOpen, onClose }: ProjectDetailModalProps) => {
+  const [githubStats, setGithubStats] = useState<GitHubStats>({
+    commits: 0,
+    contributors: 0,
+    lastUpdate: new Date().getFullYear().toString(),
+    stars: 0
+  })
+  const [isLoadingStats, setIsLoadingStats] = useState(false)
+
+  // Fetch real GitHub stats when modal opens
+  useEffect(() => {
+    if (!isOpen || !project?.github) return
+
+    const fetchGitHubStats = async () => {
+      try {
+        setIsLoadingStats(true)
+        
+        // Extract owner and repo from GitHub URL
+        const match = project.github.match(/github\.com\/([^\/]+)\/([^\/]+)/)
+        if (!match) return
+
+        const [, owner, repo] = match
+        const repoName = repo.replace('.git', '')
+
+        // Fetch repository data
+        const repoResponse = await fetch(`https://api.github.com/repos/${owner}/${repoName}`)
+        if (!repoResponse.ok) throw new Error('Failed to fetch repo data')
+        
+        const repoData = await repoResponse.json()
+
+        // Fetch contributors count
+        const contributorsResponse = await fetch(`https://api.github.com/repos/${owner}/${repoName}/contributors?per_page=1`)
+        const contributorsCount = contributorsResponse.ok 
+          ? parseInt(contributorsResponse.headers.get('link')?.match(/page=(\d+)>; rel="last"/)?.[1] || '1')
+          : 1
+
+        // Fetch commits count (approximate)
+        const commitsResponse = await fetch(`https://api.github.com/repos/${owner}/${repoName}/commits?per_page=1`)
+        const commitsCount = commitsResponse.ok
+          ? parseInt(commitsResponse.headers.get('link')?.match(/page=(\d+)>; rel="last"/)?.[1] || '1')
+          : 0
+
+        setGithubStats({
+          commits: commitsCount,
+          contributors: contributorsCount,
+          lastUpdate: new Date(repoData.updated_at).getFullYear().toString(),
+          stars: repoData.stargazers_count || 0
+        })
+      } catch (error) {
+        console.error('Error fetching GitHub stats:', error)
+        // Keep default mock values on error
+      } finally {
+        setIsLoadingStats(false)
+      }
+    }
+
+    fetchGitHubStats()
+  }, [isOpen, project?.github])
+
   // Add ESC key handler
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -39,50 +106,12 @@ const ProjectDetailModal = ({ project, isOpen, onClose }: ProjectDetailModalProp
 
   if (!project) return null
 
-  const projectDetails = {
-    1: {
-      longDescription: "Website profil desa komprehensif yang dibangun menggunakan Vue.js sebagai framework utama. Menampilkan informasi lengkap tentang Padukuhan Krapakan, termasuk sejarah, demografi, potensi desa, dan informasi pemerintahan. Website ini didesain responsif dengan antarmuka yang user-friendly untuk memberikan informasi yang mudah diakses oleh masyarakat.",
-      features: ["Halaman beranda dengan overview desa", "Profil sejarah dan budaya", "Informasi demografi penduduk", "Galeri foto dan dokumentasi", "Kontak pemerintahan desa", "Design responsif untuk semua device"],
-      challenges: ["Mengorganisir informasi kompleks dalam struktur yang mudah dipahami", "Implementasi design yang menarik dengan Vue.js", "Optimasi performa untuk loading yang cepat"],
-      learnings: ["Arsitektur komponen Vue.js", "State management dalam Vue", "Responsive web design principles", "User experience design"]
-    },
-    2: {
-      longDescription: "Sistem manajemen perpustakaan digital yang dikembangkan untuk Perpustakaan Tadika Mesra. Sistem ini memungkinkan pengelolaan koleksi buku, peminjaman, pengembalian, dan tracking status buku secara real-time. Dibangun dengan PHP dan MySQL untuk backend yang robust dan reliable.",
-      features: ["Dashboard admin untuk pengelolaan buku", "Sistem peminjaman dan pengembalian otomatis", "Tracking status buku real-time", "Laporan statistik peminjaman", "Manajemen anggota perpustakaan", "Notifikasi keterlambatan pengembalian"],
-      challenges: ["Implementasi sistem database yang efisien", "Menangani concurrent requests untuk peminjaman", "Design interface yang intuitive untuk librarian"],
-      learnings: ["Database design dan normalisasi", "PHP backend development", "Session management", "CRUD operations yang kompleks"]
-    },
-    3: {
-      longDescription: "Platform reservasi lapangan badminton online dengan sistem booking yang user-friendly. Memungkinkan pengguna untuk melihat jadwal ketersediaan lapangan, melakukan booking, dan mengelola reservasi mereka. Interface yang clean dan responsive memberikan pengalaman booking yang seamless.",
-      features: ["Kalender booking interaktif", "Real-time availability checking", "User registration dan login", "Manajemen reservasi personal", "Payment integration ready", "Admin panel untuk pengelolaan lapangan"],
-      challenges: ["Implementasi sistem kalender yang interaktif", "Handling collision dalam booking", "Responsive design untuk berbagai screen size"],
-      learnings: ["JavaScript DOM manipulation", "Date/time handling in web apps", "User interface design", "Form validation dan handling"]
-    },
-    4: {
-      longDescription: "Proyek analisis sentimen menggunakan machine learning untuk menganalisis keluhan dan curahan hati pengguna. Menggunakan teknik Natural Language Processing (NLP) untuk memahami emosi dan sentimen dari teks input, kemudian memberikan insights dan rekomendasi yang relevan.",
-      features: ["Preprocessing teks untuk analisis sentimen", "Model machine learning untuk klasifikasi emosi", "Visualisasi hasil analisis", "Dashboard untuk monitoring sentimen", "API endpoint untuk integrasi", "Real-time sentiment analysis"],
-      challenges: ["Preprocessing data teks Bahasa Indonesia", "Training model dengan dataset yang seimbang", "Handling various emotional expressions", "Model optimization untuk akurasi tinggi"],
-      learnings: ["Natural Language Processing techniques", "Machine learning model training", "Data preprocessing dan cleaning", "Python libraries untuk ML (scikit-learn, pandas)", "Model evaluation dan validation"]
-    },
-    5: {
-      longDescription: "Proyek comprehensive data analysis tentang pola rental sepeda menggunakan Python. Analisis mencakup trend temporal, pola seasonal, faktor weather impact, dan customer behavior. Menggunakan visualisasi data yang interaktif untuk mengekstrak insights bisnis yang actionable.",
-      features: ["Exploratory Data Analysis (EDA) komprehensif", "Visualisasi trend temporal dan seasonal", "Analisis korelasi faktor weather", "Customer segmentation analysis", "Predictive modeling untuk demand forecasting", "Interactive dashboard dengan Jupyter"],
-      challenges: ["Cleaning dan preprocessing dataset besar", "Handling missing values dan outliers", "Creating meaningful visualizations", "Statistical analysis yang valid"],
-      learnings: ["Pandas untuk data manipulation", "Matplotlib dan Seaborn untuk visualisasi", "Statistical analysis techniques", "Data storytelling dan presentation", "Jupyter notebook untuk data science workflow"]
-    }
-  }
-
-  const currentDetails = projectDetails[project.id as keyof typeof projectDetails] || {
-    longDescription: project.description,
-    features: ["Feature information not available"],
-    challenges: ["Challenge information not available"],
-    learnings: ["Learning information not available"]
-  }
-
-  const mockStats = {
-    commits: Math.floor(Math.random() * 50) + 10,
-    contributors: Math.floor(Math.random() * 5) + 1,
-    lastUpdate: "2024"
+  // Use real GitHub stats if available, otherwise show loading or defaults
+  const displayStats = githubStats.commits > 0 ? githubStats : {
+    commits: 0,
+    contributors: 0,
+    lastUpdate: new Date().getFullYear().toString(),
+    stars: githubStats.stars
   }
 
   return (
@@ -99,7 +128,7 @@ const ProjectDetailModal = ({ project, isOpen, onClose }: ProjectDetailModalProp
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.5, opacity: 0 }}
-            className="relative max-w-4xl max-h-[90vh] bg-gray-900 rounded-2xl overflow-hidden"
+            className="relative max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden bg-gray-900"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
@@ -112,69 +141,82 @@ const ProjectDetailModal = ({ project, isOpen, onClose }: ProjectDetailModalProp
               <X size={20} />
             </button>
 
-            {/* Header */}
-            <div className="relative h-48 bg-gradient-to-br from-primary-600 to-purple-600 p-6">
-              <div className="absolute inset-0 bg-black/20"></div>
-              <div className="relative z-10 h-full flex items-center">
+            {/* Theme Toggle Button - Removed, now in Navbar */}
+
+            {/* Header with Background Image */}
+            <div className="relative h-64 bg-gradient-to-br from-primary-600 to-purple-600 p-6">
+              {project.image && (
+                <>
+                  <img 
+                    src={project.image} 
+                    alt={project.title}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80"></div>
+                </>
+              )}
+              {!project.image && (
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-600 to-purple-600"></div>
+              )}
+              <div className="relative z-10 h-full flex align-self-stretch">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="text-4xl">
                       {project.category === 'Web Development' && '🌐'}
                       {project.category === 'Data Science' && '📊'}
+                      {project.category === 'Machine Learning' && '🤖'}
                       {project.category === 'Desktop Application' && '💻'}
                       {project.category === 'System Programming' && '⚙️'}
+                      {project.category === 'Mobile Development' && '📱'}
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-white">{project.title}</h2>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-2xl font-bold text-white">{project.title}</h2>
+                        {project.featured && (
+                          <div className="flex items-center gap-1 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                            <Award size={12} />
+                            Featured
+                          </div>
+                        )}
+                      </div>
                       <p className="text-white/80">{project.category}</p>
                     </div>
                   </div>
                   
                   {/* Quick Stats */}
-                  <div className="flex gap-6 text-white/90">
-                    <div className="flex items-center gap-2">
-                      <GitBranch size={16} />
-                      <span className="text-sm">{mockStats.commits} commits</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users size={16} />
-                      <span className="text-sm">{mockStats.contributors} contributors</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar size={16} />
-                      <span className="text-sm">Updated {mockStats.lastUpdate}</span>
-                    </div>
-                    {project.stars > 0 && (
+                  <div className="flex flex-wrap gap-4 sm:gap-6 text-white/90">
+                    {isLoadingStats ? (
                       <div className="flex items-center gap-2">
-                        <Star size={16} fill="currentColor" />
-                        <span className="text-sm">{project.stars} stars</span>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-sm">Loading stats...</span>
                       </div>
+                    ) : (
+                      <>
+                        {displayStats.commits > 0 && (
+                          <div className="flex items-center gap-2">
+                            <GitBranch size={16} />
+                            <span className="text-sm">{displayStats.commits.toLocaleString()} commits</span>
+                          </div>
+                        )}
+                        {displayStats.contributors > 0 && (
+                          <div className="flex items-center gap-2">
+                            <Users size={16} />
+                            <span className="text-sm">{displayStats.contributors} contributor{displayStats.contributors > 1 ? 's' : ''}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Calendar size={16} />
+                          <span className="text-sm">Updated {displayStats.lastUpdate}</span>
+                        </div>
+                        {displayStats.stars > 0 && (
+                          <div className="flex items-center gap-2">
+                            <Star size={16} fill="currentColor" />
+                            <span className="text-sm">{displayStats.stars} star{displayStats.stars > 1 ? 's' : ''}</span>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <a
-                    href={project.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    <Github size={16} />
-                    Code
-                  </a>
-                  {project.live && (
-                    <a
-                      href={project.live}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors"
-                    >
-                      <ExternalLink size={16} />
-                      Live Demo
-                    </a>
-                  )}
                 </div>
               </div>
             </div>
@@ -183,23 +225,23 @@ const ProjectDetailModal = ({ project, isOpen, onClose }: ProjectDetailModalProp
             <div className="max-h-[calc(90vh-12rem)] overflow-y-auto p-6 space-y-6">
               {/* Description */}
               <div>
-                <h3 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
+                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2 text-white">
                   <Code2 size={20} className="text-primary-400" />
                   Project Overview
                 </h3>
-                <p className="text-gray-300 leading-relaxed">
-                  {currentDetails.longDescription}
+                <p className="leading-relaxed whitespace-pre-wrap text-gray-300">
+                  {project.description}
                 </p>
               </div>
 
               {/* Technologies */}
               <div>
-                <h3 className="text-xl font-semibold text-white mb-3">Technologies Used</h3>
+                <h3 className="text-xl font-semibold mb-3 text-white">Technologies Used</h3>
                 <div className="flex flex-wrap gap-2">
-                  {project.technologies.map((tech) => (
+                  {project.technologies.map((tech, index) => (
                     <span
-                      key={tech}
-                      className="px-3 py-1 bg-primary-500/20 text-primary-300 text-sm rounded-full border border-primary-500/30"
+                      key={index}
+                      className="px-3 py-1 text-sm rounded-full border bg-primary-500/20 text-primary-300 border-primary-500/30"
                     >
                       {tech}
                     </span>
@@ -207,43 +249,33 @@ const ProjectDetailModal = ({ project, isOpen, onClose }: ProjectDetailModalProp
                 </div>
               </div>
 
-              {/* Features */}
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-3">Key Features</h3>
-                <ul className="space-y-2">
-                  {currentDetails.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2 text-gray-300">
-                      <span className="text-primary-400 mt-1">•</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Challenges */}
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-3">Technical Challenges</h3>
-                <ul className="space-y-2">
-                  {currentDetails.challenges.map((challenge, index) => (
-                    <li key={index} className="flex items-start gap-2 text-gray-300">
-                      <span className="text-yellow-400 mt-1">⚡</span>
-                      {challenge}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Learnings */}
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-3">Key Learnings</h3>
-                <ul className="space-y-2">
-                  {currentDetails.learnings.map((learning, index) => (
-                    <li key={index} className="flex items-start gap-2 text-gray-300">
-                      <span className="text-green-400 mt-1">✓</span>
-                      {learning}
-                    </li>
-                  ))}
-                </ul>
+              {/* Action Buttons - Moved to Bottom */}
+              <div className="pt-4 border-t border-gray-700">
+                <h3 className="text-xl font-semibold mb-4 text-white">Project Actions</h3>
+                <div className="flex flex-wrap gap-3">
+                  {project.github && (
+                    <a
+                      href={project.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-all font-medium shadow-lg bg-gray-800 hover:bg-gray-700 text-white"
+                    >
+                      <Github size={20} />
+                      View Source Code
+                    </a>
+                  )}
+                  {project.live && (
+                    <a
+                      href={project.live}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg transition-all font-medium shadow-lg"
+                    >
+                      <ExternalLink size={20} />
+                      View Live Demo
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>

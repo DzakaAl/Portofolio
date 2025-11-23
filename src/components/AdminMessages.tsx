@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Mail, Trash2, Calendar, ArrowLeft, Search, X, CheckCheck, Home, LogOut } from 'lucide-react'
+import { Mail, Trash2, Calendar, ArrowLeft, Search, X, CheckCheck, Home, LogOut, BarChart3, Shield } from 'lucide-react'
 import { getContactMessages, deleteContactMessage, markMessageAsRead, type ContactMessage } from '../services/api'
 import { useToast } from '../hooks/useToast'
 import Toast from './Toast'
 import ConfirmDialog from './ConfirmDialog'
+import VisitorStats from './VisitorStats'
 
 interface AdminMessagesProps {
   onLogout?: () => void
@@ -17,6 +18,7 @@ const AdminMessages = ({ onLogout, onBackToHome }: AdminMessagesProps) => {
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null)
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [activeTab, setActiveTab] = useState<'messages' | 'analytics'>('messages')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { toast, hideToast, success, error: showError } = useToast()
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -150,40 +152,161 @@ const AdminMessages = ({ onLogout, onBackToHome }: AdminMessagesProps) => {
         type="danger"
       />
 
-      {/* Top Header Bar with Home & Logout */}
-      <div className="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-            <Mail size={20} className="text-white" />
+      {/* Top Header Bar - Modern Minimalist Design */}
+      <div className="bg-gradient-to-r from-gray-950 via-gray-900 to-gray-950 border-b border-gray-800/50 backdrop-blur-xl">
+        {/* Desktop Layout */}
+        <div className="hidden lg:flex items-center justify-between px-6 xl:px-8 py-4">
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="w-11 h-11 bg-gradient-to-br from-sky-500 via-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-sky-500/20">
+                  <Shield size={22} className="text-white" strokeWidth={2.5} />
+                </div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-950 animate-pulse"></div>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white tracking-tight">Admin Panel</h1>
+                <p className="text-xs text-gray-400 font-medium">Management Dashboard</p>
+              </div>
+            </div>
+            
+            {/* Tab Navigation - Modern Pills */}
+            <div className="flex gap-2 p-1 bg-gray-800/50 rounded-xl backdrop-blur-sm">
+              <button
+                onClick={() => setActiveTab('messages')}
+                className={`relative flex items-center gap-2.5 px-5 py-2.5 rounded-lg transition-all font-semibold text-sm ${
+                  activeTab === 'messages' 
+                    ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg shadow-sky-500/30' 
+                    : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                }`}
+              >
+                <Mail size={18} strokeWidth={2.5} />
+                Messages
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full font-bold shadow-lg animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className={`flex items-center gap-2.5 px-5 py-2.5 rounded-lg transition-all font-semibold text-sm ${
+                  activeTab === 'analytics' 
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' 
+                    : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                }`}
+              >
+                <BarChart3 size={18} strokeWidth={2.5} />
+                Analytics
+              </button>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-bold text-white">Admin Panel</h1>
-            <p className="text-xs text-gray-400">Message Management</p>
+          
+          <div className="flex items-center gap-2">
+            {onBackToHome && (
+              <button
+                onClick={onBackToHome}
+                className="group flex items-center gap-2 px-4 py-2.5 bg-gray-800/60 hover:bg-gray-700/60 text-gray-300 hover:text-white rounded-xl transition-all font-medium text-sm border border-gray-700/50 hover:border-gray-600"
+              >
+                <Home size={18} className="group-hover:scale-110 transition-transform" strokeWidth={2.5} />
+                Home
+              </button>
+            )}
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="group flex items-center gap-2 px-4 py-2.5 bg-red-600/90 hover:bg-red-600 text-white rounded-xl transition-all font-medium text-sm shadow-lg shadow-red-500/20 hover:shadow-red-500/30"
+              >
+                <LogOut size={18} className="group-hover:scale-110 transition-transform" strokeWidth={2.5} />
+                Logout
+              </button>
+            )}
           </div>
         </div>
-        
-        <div className="flex items-center gap-2">
-          {onBackToHome && (
-            <button
-              onClick={onBackToHome}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all"
-            >
-              <Home size={18} />
-              <span className="hidden sm:inline">Home</span>
-            </button>
-          )}
-          {onLogout && (
-            <button
-              onClick={onLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all"
-            >
-              <LogOut size={18} />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
-          )}
+
+        {/* Mobile & Tablet Layout */}
+        <div className="lg:hidden">
+          {/* Top Row - Logo, Title, Actions */}
+          <div className="flex items-center justify-between px-4 py-3.5">
+            <div className="flex items-center gap-2.5">
+              <div className="relative">
+                <div className="w-10 h-10 bg-gradient-to-br from-sky-500 via-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-sky-500/20">
+                  <Shield size={20} className="text-white" strokeWidth={2.5} />
+                </div>
+                <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-gray-950 animate-pulse"></div>
+              </div>
+              <div>
+                <h1 className="text-base sm:text-lg font-bold text-white tracking-tight">Admin Panel</h1>
+                <p className="text-[10px] sm:text-xs text-gray-400 font-medium">Dashboard</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-1.5">
+              {onBackToHome && (
+                <button
+                  onClick={onBackToHome}
+                  className="flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto sm:px-3 sm:py-2 bg-gray-800/60 hover:bg-gray-700/60 text-gray-300 hover:text-white rounded-lg sm:rounded-xl transition-all border border-gray-700/50"
+                  title="Back to Home"
+                >
+                  <Home size={18} strokeWidth={2.5} />
+                  <span className="hidden sm:inline ml-1.5 text-sm font-medium">Home</span>
+                </button>
+              )}
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto sm:px-3 sm:py-2 bg-red-600/90 hover:bg-red-600 text-white rounded-lg sm:rounded-xl transition-all shadow-lg shadow-red-500/20"
+                  title="Logout"
+                >
+                  <LogOut size={18} strokeWidth={2.5} />
+                  <span className="hidden sm:inline ml-1.5 text-sm font-medium">Logout</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom Row - Tab Navigation Pills Mobile */}
+          <div className="px-4 pb-3.5">
+            <div className="flex gap-2 p-1 bg-gray-800/50 rounded-xl backdrop-blur-sm">
+              <button
+                onClick={() => setActiveTab('messages')}
+                className={`relative flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg transition-all font-semibold text-sm ${
+                  activeTab === 'messages' 
+                    ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg shadow-sky-500/30' 
+                    : 'text-gray-400 hover:bg-gray-700/50'
+                }`}
+              >
+                <Mail size={18} strokeWidth={2.5} />
+                Messages
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full font-bold shadow-lg animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg transition-all font-semibold text-sm ${
+                  activeTab === 'analytics' 
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' 
+                    : 'text-gray-400 hover:bg-gray-700/50'
+                }`}
+              >
+                <BarChart3 size={18} strokeWidth={2.5} />
+                Analytics
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       
+      {/* Content Area */}
+      {activeTab === 'analytics' ? (
+        <div className="flex-1 overflow-y-auto p-6">
+          <VisitorStats />
+        </div>
+      ) : (
+        <>
       {/* Full Screen Message Layout - No Padding, No Border Radius */}
       <div className="flex-1 overflow-hidden">
         <div className="h-full bg-gray-900">
@@ -435,6 +558,8 @@ const AdminMessages = ({ onLogout, onBackToHome }: AdminMessagesProps) => {
           </div>
         </div>
       </div>
+      </>
+      )}
     </div>
   )
 }

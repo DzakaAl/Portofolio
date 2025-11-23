@@ -12,7 +12,6 @@ const Navbar = () => {
   const [unreadCount, setUnreadCount] = useState(0)
   const [showLoginModal, setShowLoginModal] = useState(false)
   
-  // Static navigation items
   const navItems = [
     { name: 'Home', href: '#home' },
     { name: 'About', href: '#about' },
@@ -114,7 +113,6 @@ const Navbar = () => {
                   </motion.button>
                 ))}
                 
-                {/* Login/Logout Button */}
                 {isAdmin ? (
                   <>
                     <motion.button
@@ -158,9 +156,7 @@ const Navbar = () => {
               </div>
             </div>
 
-            {/* Mobile menu button */}
             <div className="md:hidden flex items-center gap-2">
-              {/* Mobile Messages Button for Admin */}
               {isAdmin && (
                 <motion.button
                   whileTap={{ scale: 0.95 }}
@@ -191,7 +187,6 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
         <motion.div
           initial={false}
           animate={{
@@ -212,7 +207,6 @@ const Navbar = () => {
               </motion.button>
             ))}
             
-            {/* Admin Login/Logout in Sidebar */}
             <div className="pt-2 border-t border-gray-700/50">
               {isAdmin ? (
                 <motion.button

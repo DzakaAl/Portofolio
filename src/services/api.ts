@@ -680,4 +680,197 @@ export const updateAboutContent = async (content: AboutContent): Promise<AboutCo
   return content
 }
 
+// ==================== VISITOR ANALYTICS ====================
+export interface VisitorAnalytics {
+  id?: number
+  visitorId: string
+  firstVisit?: string
+  lastVisit?: string
+  visitCount?: number
+  userAgent?: string
+  ipAddress?: string
+  country?: string
+  city?: string
+}
+
+export interface PageView {
+  id?: number
+  pageName: string
+  visitorId: string
+  viewedAt?: string
+  sessionId?: string
+  referrer?: string
+  userAgent?: string
+}
+
+export interface VisitorStats {
+  totalVisitors: number
+  totalPageViews: number
+  todayVisitors: number
+  todayPageViews: number
+}
+
+// Generate or get visitor ID from localStorage
+const getVisitorId = (): string => {
+  let visitorId = localStorage.getItem('visitorId')
+  if (!visitorId) {
+    // Check if user is admin, mark visitor ID differently
+    const isAdmin = localStorage.getItem('portfolio_admin_auth') === 'true'
+    if (isAdmin) {
+      visitorId = 'admin_session'
+      localStorage.setItem('visitorId', visitorId)
+    } else {
+      visitorId = `visitor_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
+      localStorage.setItem('visitorId', visitorId)
+    }
+  }
+  return visitorId
+}
+
+// Track visitor
+export const trackVisitor = async (): Promise<void> => {
+  try {
+    // Don't track if user is admin - check using the auth utility
+    const isAdmin = localStorage.getItem('portfolio_admin_auth') === 'true'
+    if (isAdmin) {
+      return
+    }
+    
+    const visitorId = getVisitorId()
+    const userAgent = navigator.userAgent
+    
+    // Check if visitor exists
+    const { data: existingVisitor } = await supabase
+      .from('visitor_analytics')
+      .select('*')
+      .eq('visitor_id', visitorId)
+      .single()
+
+    if (existingVisitor) {
+      // Update existing visitor
+      await supabase
+        .from('visitor_analytics')
+        .update({
+          last_visit: new Date().toISOString(),
+          visit_count: (existingVisitor.visit_count || 0) + 1,
+          user_agent: userAgent
+        })
+        .eq('visitor_id', visitorId)
+    } else {
+      // Create new visitor
+      await supabase
+        .from('visitor_analytics')
+        .insert([{
+          visitor_id: visitorId,
+          first_visit: new Date().toISOString(),
+          last_visit: new Date().toISOString(),
+          visit_count: 1,
+          user_agent: userAgent
+        }])
+    }
+  } catch (error) {
+    
+  }
+}
+
+// Track page view
+export const trackPageView = async (pageName: string): Promise<void> => {
+  try {
+    const isAdmin = localStorage.getItem('portfolio_admin_auth') === 'true'
+    if (isAdmin) {
+      return
+    }
+    
+    const visitorId = getVisitorId()
+    const sessionId = sessionStorage.getItem('sessionId') || `session_${Date.now()}`
+    sessionStorage.setItem('sessionId', sessionId)
+    
+    await supabase
+      .from('page_views')
+      .insert([{
+        page_name: pageName,
+        visitor_id: visitorId,
+        viewed_at: new Date().toISOString(),
+        session_id: sessionId,
+        referrer: document.referrer || 'direct',
+        user_agent: navigator.userAgent
+      }])
+  } catch (error) {
+    
+  }
+}
+
+// Get visitor statistics
+export const getVisitorStats = async (): Promise<VisitorStats> => {
+  try {
+    // Get total visitors (exclude admin)
+    const { count: totalVisitors } = await supabase
+      .from('visitor_analytics')
+      .select('*', { count: 'exact', head: true })
+      .neq('visitor_id', 'admin_session') // Exclude admin
+
+    // Get total page views (exclude admin)
+    const { count: totalPageViews } = await supabase
+      .from('page_views')
+      .select('*', { count: 'exact', head: true })
+      .neq('visitor_id', 'admin_session') // Exclude admin
+
+    // Get today's date range
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const todayStr = today.toISOString()
+
+    // Get today's visitors (exclude admin)
+    const { data: todayVisitorsData } = await supabase
+      .from('visitor_analytics')
+      .select('visitor_id')
+      .gte('last_visit', todayStr)
+      .neq('visitor_id', 'admin_session') // Exclude admin
+
+    // Get today's page views (exclude admin)
+    const { count: todayPageViews } = await supabase
+      .from('page_views')
+      .select('*', { count: 'exact', head: true })
+      .gte('viewed_at', todayStr)
+      .neq('visitor_id', 'admin_session') // Exclude admin
+
+    return {
+      totalVisitors: totalVisitors || 0,
+      totalPageViews: totalPageViews || 0,
+      todayVisitors: todayVisitorsData?.length || 0,
+      todayPageViews: todayPageViews || 0
+    }
+  } catch (error) {
+    return {
+      totalVisitors: 0,
+      totalPageViews: 0,
+      todayVisitors: 0,
+      todayPageViews: 0
+    }
+  }
+}
+
+// Get page views by page name
+export const getPageViewsByPage = async (): Promise<Record<string, number>> => {
+  try {
+    const { data } = await supabase
+      .from('page_views')
+      .select('page_name')
+      .neq('visitor_id', 'admin_session') // Exclude admin
+
+    if (!data) return {}
+
+    // Count views by page name
+    const viewsByPage: Record<string, number> = {}
+    data.forEach((view) => {
+      viewsByPage[view.page_name] = (viewsByPage[view.page_name] || 0) + 1
+    })
+
+    return viewsByPage
+  } catch (error) {
+    return {}
+  }
+}
+
+
 

@@ -43,6 +43,7 @@ interface Project {
   live: string
   stars: number
   category: string
+  image?: string
 }
 
 const Portfolio = () => {
@@ -553,12 +554,44 @@ const Portfolio = () => {
               {/* Project Content */}
               <div className="p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-2 sm:mb-3">
-                  <h3 className="text-lg sm:text-xl font-semibold text-white group-hover:text-primary-400 transition-colors truncate">
+                  <h3 
+                    className="text-lg sm:text-xl font-semibold text-white group-hover:text-primary-400 transition-colors truncate cursor-pointer"
+                    onClick={() => {
+                      setSelectedProject({
+                        id: project.id!,
+                        title: project.title,
+                        description: project.description,
+                        technologies: toArray(project.technologies),
+                        github: project.githubUrl || '',
+                        live: project.liveUrl || '',
+                        stars: 0,
+                        category: project.category || 'Web Development',
+                        image: project.image
+                      })
+                      setIsModalOpen(true)
+                    }}
+                  >
                     {project.title}
                   </h3>
                 </div>
                 
-                <p className="text-gray-300 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed line-clamp-3">
+                <p 
+                  className="text-gray-300 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed line-clamp-3 cursor-pointer"
+                  onClick={() => {
+                    setSelectedProject({
+                      id: project.id!,
+                      title: project.title,
+                      description: project.description,
+                      technologies: toArray(project.technologies),
+                      github: project.githubUrl || '',
+                      live: project.liveUrl || '',
+                      stars: 0,
+                      category: project.category || 'Web Development',
+                      image: project.image
+                    })
+                    setIsModalOpen(true)
+                  }}
+                >
                   {project.description}
                 </p>
 

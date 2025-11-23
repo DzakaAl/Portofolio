@@ -112,6 +112,36 @@ CREATE TABLE IF NOT EXISTS admin_users (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 8. Visitor Analytics Table
+CREATE TABLE IF NOT EXISTS visitor_analytics (
+  id BIGSERIAL PRIMARY KEY,
+  visitor_id TEXT UNIQUE NOT NULL,
+  first_visit TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  last_visit TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  visit_count INTEGER DEFAULT 1,
+  user_agent TEXT,
+  ip_address TEXT,
+  country TEXT,
+  city TEXT
+);
+
+-- 9. Page Views Table
+CREATE TABLE IF NOT EXISTS page_views (
+  id BIGSERIAL PRIMARY KEY,
+  page_name TEXT NOT NULL,
+  visitor_id TEXT NOT NULL,
+  viewed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  session_id TEXT,
+  referrer TEXT,
+  user_agent TEXT
+);
+
+-- Create indexes for visitor analytics
+CREATE INDEX IF NOT EXISTS idx_visitor_analytics_visitor_id ON visitor_analytics(visitor_id);
+CREATE INDEX IF NOT EXISTS idx_page_views_page_name ON page_views(page_name);
+CREATE INDEX IF NOT EXISTS idx_page_views_viewed_at ON page_views(viewed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_page_views_visitor_id ON page_views(visitor_id);
+
 -- Enable Row Level Security (RLS)
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE certificates ENABLE ROW LEVEL SECURITY;
@@ -121,6 +151,8 @@ ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE about_info ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE visitor_analytics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE page_views ENABLE ROW LEVEL SECURITY;
 
 -- Create Policies for Public Read Access
 CREATE POLICY "Allow public read access" ON projects FOR SELECT USING (true);
@@ -128,6 +160,13 @@ CREATE POLICY "Allow public read access" ON certificates FOR SELECT USING (true)
 CREATE POLICY "Allow public read access" ON tech_stack FOR SELECT USING (true);
 CREATE POLICY "Allow public read access" ON contact_info FOR SELECT USING (true);
 CREATE POLICY "Allow public read access" ON about_info FOR SELECT USING (true);
+
+-- Create Policies for Visitor Analytics
+CREATE POLICY "Allow public insert" ON visitor_analytics FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update own" ON visitor_analytics FOR UPDATE USING (true);
+CREATE POLICY "Allow public insert" ON page_views FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow authenticated read" ON visitor_analytics FOR SELECT USING (true);
+CREATE POLICY "Allow authenticated read" ON page_views FOR SELECT USING (true);
 
 -- Create Policies for Public Insert on Messages
 CREATE POLICY "Allow public insert" ON messages FOR INSERT WITH CHECK (true);
@@ -159,39 +198,3 @@ CREATE POLICY "Allow authenticated delete" ON contact_messages FOR DELETE USING 
 
 CREATE POLICY "Allow authenticated read" ON admin_users FOR SELECT USING (true);
 
--- Insert Default Data
-INSERT INTO contact_info (email, location, github, linkedin, instagram, twitter, website) VALUES
-('dzaka@example.com', 'Yogyakarta, Indonesia', 'https://github.com/dzaka', 'https://linkedin.com/in/dzaka', 'https://instagram.com/dzaka', 'https://twitter.com/dzaka', 'https://dzaka.dev')
-ON CONFLICT DO NOTHING;
-
-INSERT INTO about_info (title, content, skills) VALUES
-('Full Stack Developer', 'Passionate developer with expertise in modern web technologies.', 'React, TypeScript, Node.js, Python, Machine Learning')
-ON CONFLICT DO NOTHING;
-
-INSERT INTO admin_users (username, password, email) VALUES
-('admin', 'admin123', 'admin@example.com')
-ON CONFLICT DO NOTHING;
-
--- Sample Projects
-INSERT INTO projects (title, description, image, technologies, github, demo) VALUES
-('E-Commerce Platform', 'Full-stack e-commerce website with payment integration', 'https://via.placeholder.com/400x300', 'React, Node.js, MongoDB, Stripe', 'https://github.com', 'https://demo.com'),
-('AI Chatbot', 'Intelligent chatbot using natural language processing', 'https://via.placeholder.com/400x300', 'Python, TensorFlow, Flask', 'https://github.com', 'https://demo.com'),
-('Portfolio Website', 'Modern portfolio with admin panel', 'https://via.placeholder.com/400x300', 'React, TypeScript, Supabase', 'https://github.com', 'https://demo.com')
-ON CONFLICT DO NOTHING;
-
--- Sample Certificates
-INSERT INTO certificates (title, issuer, date, image, credential_url) VALUES
-('TensorFlow Developer Certificate', 'DeepLearning.AI', '2024-01', 'https://via.placeholder.com/400x300', 'https://coursera.org/verify/123'),
-('Full Stack Web Development', 'Coursera', '2023-12', 'https://via.placeholder.com/400x300', 'https://coursera.org/verify/456'),
-('Machine Learning Specialization', 'Stanford University', '2023-11', 'https://via.placeholder.com/400x300', 'https://coursera.org/verify/789')
-ON CONFLICT DO NOTHING;
-
--- Sample Tech Stack
-INSERT INTO tech_stack (name, category, icon) VALUES
-('React', 'Frontend', 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg'),
-('TypeScript', 'Frontend', 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg'),
-('Node.js', 'Backend', 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg'),
-('Python', 'Backend', 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg'),
-('PostgreSQL', 'Database', 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg'),
-('TensorFlow', 'ML/AI', 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tensorflow/tensorflow-original.svg')
-ON CONFLICT DO NOTHING;

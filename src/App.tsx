@@ -6,27 +6,33 @@ import Portfolio from './components/Portfolio'
 import Contact from './components/Contact'
 import AdminPanel from './components/AdminPanel'
 import EditModeControls from './components/EditModeControls'
+import { trackVisitor, trackPageView } from './services/api'
 
 function App() {
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState('home')
 
   useEffect(() => {
-    // Check URL path (handle both local and GitHub Pages base URL)
+    const isAdmin = localStorage.getItem('portfolio_admin_auth') === 'true'
+    
+    if (!isAdmin) {
+      trackVisitor()
+      trackPageView('home')
+    }
+    
     const path = window.location.pathname
     const basePath = import.meta.env.BASE_URL || '/'
-    // Remove base path and clean up slashes
     const relativePath = path.replace(basePath, '/').replace(/\/+/g, '/')
-    
-    console.log('Current path:', path, 'Base:', basePath, 'Relative:', relativePath)
     
     if (relativePath.includes('admin') || path.includes('admin')) {
       setCurrentPage('admin')
+      if (!isAdmin) {
+        trackPageView('admin')
+      }
     } else {
       setCurrentPage('home')
     }
 
-    // Simulate loading time
     const timer = setTimeout(() => {
       setIsLoading(false)
     }, 2000)
@@ -34,7 +40,6 @@ function App() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Handle browser back/forward
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname
@@ -68,7 +73,6 @@ function App() {
     return <AdminPanel />
   }
 
-  // Render Home Page
   return (
     <div className="bg-gradient-to-br from-dark-300 via-dark-200 to-dark-100 min-h-screen">
       <Navbar />
@@ -80,7 +84,6 @@ function App() {
         <Contact />
       </main>
       
-      {/* Background Elements */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
