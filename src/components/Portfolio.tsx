@@ -124,6 +124,7 @@ const Portfolio = () => {
   const loadCertificates = async () => {
     try {
       const data = await getCertificates()
+      // Certificates already sorted by date string parsing (newest first) from API
       setCertificates(data)
     } catch (error) {
       setCertificates([])
@@ -347,8 +348,7 @@ const Portfolio = () => {
   const handleAddTechStack = () => {
     setEditingTechStack({
       name: '',
-      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg',
-      color: '#3B82F6',
+      icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/></svg>',
       category: 'Frontend',
       displayOrder: techStackItems.length + 1
     })
@@ -627,7 +627,7 @@ const Portfolio = () => {
                         href={project.liveUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg text-sm font-medium text-center transition-colors flex items-center justify-center gap-2"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-sm font-medium text-center transition-colors flex items-center justify-center gap-2"
                       >
                         <ExternalLink size={16} />
                         Live
@@ -667,7 +667,7 @@ const Portfolio = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleAddCertificate}
-                className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 transition-colors text-white px-6 py-3 rounded-lg font-medium shadow-lg"
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 transition-colors text-white px-6 py-3 rounded-lg font-medium shadow-lg"
               >
                 <Plus size={20} />
                 Add Certificate
@@ -762,7 +762,7 @@ const Portfolio = () => {
                   href={cert.verificationUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-primary-400 hover:text-primary-300 text-sm transition-colors font-medium"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-sm font-medium text-center transition-colors flex items-center justify-center gap-2"
                 >
                   <ExternalLink size={14} />
                   Verify Certificate
@@ -812,7 +812,7 @@ const Portfolio = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleAddTechStack}
-                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 transition-colors text-white px-6 py-3 rounded-lg font-medium shadow-lg"
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700 transition-colors text-white px-6 py-3 rounded-lg font-medium shadow-lg"
                 >
                   <Plus size={20} />
                   Add Tech Stack
@@ -822,27 +822,12 @@ const Portfolio = () => {
           </motion.div>
         )}
 
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-center"
-        >
-          <h3 className="text-2xl font-semibold text-white mb-4">
-            Technologies & <span className="gradient-text">Tools</span>
-          </h3>
-          <p className="text-gray-400 max-w-2xl mx-auto">
-            A comprehensive overview of technologies, frameworks, and tools I work with
-          </p>
-        </motion.div>
-
         {/* Unified Tech Grid */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-3 sm:gap-4"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6"
         >
           {techStackItems.map((tech, index) => (
             <motion.div
@@ -882,56 +867,28 @@ const Portfolio = () => {
               )}
 
               {/* Tech Box */}
-              <div className="glass-effect rounded-lg sm:rounded-xl p-2 sm:p-3 text-center card-hover cursor-pointer relative overflow-hidden">
-                {/* Background Gradient on Hover */}
-                <div 
-                  className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-xl"
-                  style={{ backgroundColor: tech.color }}
-                ></div>
-                
-                {/* Tech Icon - Image */}
-                <div 
-                  className="w-10 h-10 mx-auto mb-2 rounded-lg flex items-center justify-center text-white text-lg transition-all duration-300 relative z-10 p-1.5"
-                  style={{ backgroundColor: tech.color }}
-                >
-                  <img 
-                    src={tech.icon} 
-                    alt={tech.name}
-                    className="w-full h-full object-contain filter brightness-0 invert"
-                    onError={(e) => {
-                      // Fallback jika gambar gagal load
-                      const target = e.target as HTMLImageElement
-                      target.style.display = 'none'
-                      target.parentElement!.innerHTML = tech.name.charAt(0).toUpperCase()
-                    }}
-                  />
+              <div className="bg-[#1E293B]/80 backdrop-blur-sm rounded-2xl p-6 sm:p-8 text-center cursor-pointer relative overflow-hidden transition-all duration-300 hover:bg-[#1E293B] hover:scale-105 hover:shadow-2xl hover:shadow-primary-500/20 border border-gray-700/50 hover:border-primary-500/50">
+                {/* Tech Icon - SVG */}
+                <div className="mx-auto mb-4 flex items-center justify-center">
+                  {tech.icon && tech.icon.trim().startsWith('<svg') ? (
+                    <div 
+                      className="w-16 h-16 sm:w-20 sm:h-20 text-primary-400 transition-transform duration-300 group-hover:scale-110"
+                      dangerouslySetInnerHTML={{ __html: tech.icon }}
+                    />
+                  ) : (
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-primary-500/20 flex items-center justify-center">
+                      <span className="text-3xl sm:text-4xl font-bold text-primary-400">{tech.name.charAt(0).toUpperCase()}</span>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Tech Name */}
-                <div 
-                  className="text-white font-medium text-xs transition-colors duration-300 relative z-10 leading-tight"
-                  style={{ 
-                    color: 'white'
-                  }}
-                >
+                <div className="text-white font-medium text-sm sm:text-base transition-colors duration-300 group-hover:text-primary-300">
                   {tech.name}
                 </div>
                 
-                {/* Category Badge - Shows on Hover */}
-                <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div 
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: tech.color }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
-                <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded-md whitespace-nowrap shadow-lg">
-                  {tech.category}
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                </div>
+                {/* Subtle shine effect on hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 rounded-2xl"></div>
               </div>
             </motion.div>
           ))}
@@ -1387,8 +1344,9 @@ const Portfolio = () => {
                       value={editingCertificate.date}
                       onChange={(e) => setEditingCertificate({ ...editingCertificate, date: e.target.value })}
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-primary-500 focus:outline-none"
-                      placeholder="e.g. Jan 2024"
+                      placeholder="e.g. Jan 2024, January 2024, 2024-01"
                     />
+                    <p className="text-gray-500 text-sm mt-1">Format: "Jan 2024", "January 2024", atau "2024-01". Akan diurutkan otomatis dari terbaru.</p>
                   </div>
 
                   {/* Description */}
@@ -1538,65 +1496,47 @@ const Portfolio = () => {
                     />
                   </div>
 
-                  {/* Icon (Image URL) */}
+                  {/* Icon (SVG Code) */}
                   <div>
-                    <label className="block text-gray-300 font-medium mb-2">Icon (Image URL)</label>
-                    <input
-                      type="text"
+                    <label className="block text-gray-300 font-medium mb-2">Icon (Kode SVG)</label>
+                    <textarea
                       value={editingTechStack.icon}
                       onChange={(e) => setEditingTechStack({ ...editingTechStack, icon: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-primary-500 focus:outline-none"
-                      placeholder="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg"
+                      rows={4}
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-primary-500 focus:outline-none resize-none font-mono text-sm"
+                      placeholder='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="..."/></svg>'
                     />
-                    <p className="text-gray-500 text-sm mt-1">Gunakan URL gambar icon teknologi (SVG recommended)</p>
+                    <p className="text-gray-500 text-sm mt-1">Masukkan kode SVG lengkap (bukan URL gambar)</p>
                     <p className="text-gray-400 text-xs mt-1">
-                      Contoh: <a href="https://devicon.dev" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">devicon.dev</a> atau 
-                      <a href="https://simpleicons.org" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline ml-1">simpleicons.org</a>
+                      Dapatkan icon SVG dari: <a href="https://heroicons.com" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">heroicons.com</a>, 
+                      <a href="https://www.svgrepo.com" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline ml-1">svgrepo.com</a>, atau 
+                      <a href="https://iconify.design" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline ml-1">iconify.design</a>
                     </p>
                   </div>
 
-                  {/* Color (Hex Code) */}
+                  {/* Preview */}
                   <div>
-                    <label className="block text-gray-300 font-medium mb-2">Color (Hex Code)</label>
-                    <div className="flex gap-3">
-                      <input
-                        type="color"
-                        value={editingTechStack.color || '#3B82F6'}
-                        onChange={(e) => setEditingTechStack({ ...editingTechStack, color: e.target.value })}
-                        className="w-16 h-12 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={editingTechStack.color || '#3B82F6'}
-                        onChange={(e) => setEditingTechStack({ ...editingTechStack, color: e.target.value })}
-                        className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-primary-500 focus:outline-none font-mono"
-                        placeholder="#3B82F6"
-                        pattern="^#[0-9A-Fa-f]{6}$"
-                      />
-                    </div>
-                    <p className="text-gray-500 text-sm mt-1">Pilih warna atau masukkan kode hex (contoh: #3B82F6 untuk biru)</p>
-                    {/* Preview */}
-                    <div className="mt-3">
-                      <p className="text-gray-400 text-sm mb-2">Preview:</p>
-                      <div 
-                        className="w-16 h-16 rounded-lg flex items-center justify-center p-2"
-                        style={{ backgroundColor: editingTechStack.color || '#3B82F6' }}
-                      >
-                        {editingTechStack.icon && editingTechStack.icon.startsWith('http') ? (
-                          <img 
-                            src={editingTechStack.icon} 
-                            alt="Preview"
-                            className="w-full h-full object-contain filter brightness-0 invert"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.style.display = 'none'
-                              target.parentElement!.innerHTML = editingTechStack.name.charAt(0).toUpperCase()
-                            }}
-                          />
-                        ) : (
-                          <span className="text-white text-2xl font-bold">
-                            {editingTechStack.name.charAt(0).toUpperCase()}
-                          </span>
+                    <label className="block text-gray-300 font-medium mb-2">Preview</label>
+                    <div className="glass-effect rounded-xl p-6 flex flex-col items-center justify-center gap-3">
+                      <div className="relative group">
+                        {/* Main preview box matching the actual display */}
+                        <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-primary-500/20 to-sky-500/20 backdrop-blur-sm flex items-center justify-center p-3 shadow-lg transition-all duration-300 hover:shadow-primary-500/50">
+                          {editingTechStack.icon && editingTechStack.icon.trim().startsWith('<svg') ? (
+                            <div 
+                              className="w-full h-full text-primary-400"
+                              dangerouslySetInnerHTML={{ __html: editingTechStack.icon }}
+                            />
+                          ) : (
+                            <span className="text-primary-400 text-3xl font-bold">
+                              {editingTechStack.name.charAt(0).toUpperCase() || '?'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-white font-semibold text-sm">{editingTechStack.name || 'Technology Name'}</p>
+                        {editingTechStack.category && (
+                          <p className="text-primary-400 text-xs mt-1">{editingTechStack.category}</p>
                         )}
                       </div>
                     </div>

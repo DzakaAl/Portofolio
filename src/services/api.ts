@@ -182,7 +182,7 @@ export interface Certificate {
   id?: number
   title: string
   issuer: string
-  date: string
+  date: string // Display format (e.g., "Jan 2024") - juga digunakan untuk sorting
   description?: string
   image: string
   verificationUrl?: string
@@ -195,13 +195,54 @@ export const getCertificates = async (): Promise<Certificate[]> => {
   const { data, error } = await supabase
     .from('certificates')
     .select('*')
-    .order('display_order', { ascending: true })
+    .order('created_at', { ascending: false })
 
   if (error) {
     return []
   }
 
-  return toCamelCase(data) || []
+  const certificates = toCamelCase(data) || []
+  
+  // Sort by date string (parse and sort newest first)
+  return certificates.sort((a: Certificate, b: Certificate) => {
+    const parseDate = (dateStr: string): Date => {
+      if (!dateStr) return new Date(0)
+      
+      const monthMap: { [key: string]: number } = {
+        'jan': 0, 'january': 0, 'feb': 1, 'february': 1,
+        'mar': 2, 'march': 2, 'apr': 3, 'april': 3,
+        'may': 4, 'jun': 5, 'june': 5,
+        'jul': 6, 'july': 6, 'aug': 7, 'august': 7,
+        'sep': 8, 'september': 8, 'oct': 9, 'october': 9,
+        'nov': 10, 'november': 10, 'dec': 11, 'december': 11
+      }
+      
+      // Try ISO format first (2024-01, 2024-01-15)
+      if (/^\d{4}-\d{1,2}/.test(dateStr)) {
+        return new Date(dateStr)
+      }
+      
+      // Try "Jan 2024" or "January 2024" format
+      const parts = dateStr.toLowerCase().trim().split(/[\s-/]+/)
+      if (parts.length >= 2) {
+        const monthStr = parts[0]
+        const year = parseInt(parts[1])
+        const month = monthMap[monthStr]
+        
+        if (month !== undefined && !isNaN(year)) {
+          return new Date(year, month, 1)
+        }
+      }
+      
+      // Fallback: try to parse as-is
+      const parsed = new Date(dateStr)
+      return isNaN(parsed.getTime()) ? new Date(0) : parsed
+    }
+    
+    const dateA = parseDate(a.date)
+    const dateB = parseDate(b.date)
+    return dateB.getTime() - dateA.getTime() // Descending (newest first)
+  })
 }
 
 export const createCertificate = async (certificate: Omit<Certificate, 'id'>): Promise<Certificate> => {
@@ -249,8 +290,7 @@ export interface TechStack {
   id?: number
   name: string
   category: string
-  icon: string // URL gambar icon
-  color: string // Kode warna hex (contoh: "#3178C6")
+  icon: string // Kode SVG lengkap
   displayOrder?: number
   createdAt?: string
 }
