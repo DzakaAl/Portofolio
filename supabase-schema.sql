@@ -51,8 +51,7 @@ CREATE TABLE IF NOT EXISTS contact_info (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 5. Contact Messages Table (New - With read status tracking)
--- This is the main table for contact form submissions
+-- 5. Contact Messages Table
 CREATE TABLE IF NOT EXISTS contact_messages (
   id BIGSERIAL PRIMARY KEY,
   name TEXT NOT NULL,
@@ -84,16 +83,6 @@ BEFORE UPDATE ON contact_messages
 FOR EACH ROW
 EXECUTE FUNCTION update_contact_messages_updated_at();
 
--- 5b. Messages Table (Legacy - Keep for backward compatibility)
-CREATE TABLE IF NOT EXISTS messages (
-  id BIGSERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  email TEXT NOT NULL,
-  subject TEXT NOT NULL,
-  message TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
 -- 6. About Info Table
 CREATE TABLE IF NOT EXISTS about_info (
   id BIGSERIAL PRIMARY KEY,
@@ -112,16 +101,7 @@ CREATE TABLE IF NOT EXISTS about_info (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 7. Admin Users Table
-CREATE TABLE IF NOT EXISTS admin_users (
-  id BIGSERIAL PRIMARY KEY,
-  username TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL,
-  email TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 8. Visitor Analytics Table
+-- 7. Visitor Analytics Table
 CREATE TABLE IF NOT EXISTS visitor_analytics (
   id BIGSERIAL PRIMARY KEY,
   visitor_id TEXT UNIQUE NOT NULL,
@@ -134,7 +114,7 @@ CREATE TABLE IF NOT EXISTS visitor_analytics (
   city TEXT
 );
 
--- 9. Page Views Table
+-- 8. Page Views Table
 CREATE TABLE IF NOT EXISTS page_views (
   id BIGSERIAL PRIMARY KEY,
   page_name TEXT NOT NULL,
@@ -156,54 +136,52 @@ ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE certificates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tech_stack ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_info ENABLE ROW LEVEL SECURITY;
-ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE about_info ENABLE ROW LEVEL SECURITY;
-ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE visitor_analytics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE page_views ENABLE ROW LEVEL SECURITY;
 
--- Create Policies for Public Read Access
-CREATE POLICY "Allow public read access" ON projects FOR SELECT USING (true);
-CREATE POLICY "Allow public read access" ON certificates FOR SELECT USING (true);
-CREATE POLICY "Allow public read access" ON tech_stack FOR SELECT USING (true);
-CREATE POLICY "Allow public read access" ON contact_info FOR SELECT USING (true);
-CREATE POLICY "Allow public read access" ON about_info FOR SELECT USING (true);
+-- RLS POLICIES
 
--- Create Policies for Visitor Analytics
-CREATE POLICY "Allow public insert" ON visitor_analytics FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update own" ON visitor_analytics FOR UPDATE USING (true);
-CREATE POLICY "Allow public insert" ON page_views FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow authenticated read" ON visitor_analytics FOR SELECT USING (true);
-CREATE POLICY "Allow authenticated read" ON page_views FOR SELECT USING (true);
+-- PROJECTS
+CREATE POLICY "Public Read Projects" ON projects FOR SELECT USING (true);
+CREATE POLICY "Admin Insert Projects" ON projects FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Admin Update Projects" ON projects FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Admin Delete Projects" ON projects FOR DELETE TO authenticated USING (true);
 
--- Create Policies for Public Insert on Messages
-CREATE POLICY "Allow public insert" ON messages FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public insert" ON contact_messages FOR INSERT WITH CHECK (true);
+-- CERTIFICATES
+CREATE POLICY "Public Read Certificates" ON certificates FOR SELECT USING (true);
+CREATE POLICY "Admin Insert Certificates" ON certificates FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Admin Update Certificates" ON certificates FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Admin Delete Certificates" ON certificates FOR DELETE TO authenticated USING (true);
 
--- Create Policies for Authenticated Users (Admin)
--- Note: You'll need to set up Supabase Auth or use service role key for admin operations
-CREATE POLICY "Allow authenticated insert" ON projects FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow authenticated update" ON projects FOR UPDATE USING (true);
-CREATE POLICY "Allow authenticated delete" ON projects FOR DELETE USING (true);
+-- TECH STACK
+CREATE POLICY "Public Read TechStack" ON tech_stack FOR SELECT USING (true);
+CREATE POLICY "Admin Insert TechStack" ON tech_stack FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Admin Update TechStack" ON tech_stack FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Admin Delete TechStack" ON tech_stack FOR DELETE TO authenticated USING (true);
 
-CREATE POLICY "Allow authenticated insert" ON certificates FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow authenticated update" ON certificates FOR UPDATE USING (true);
-CREATE POLICY "Allow authenticated delete" ON certificates FOR DELETE USING (true);
+-- CONTACT INFO
+CREATE POLICY "Public Read ContactInfo" ON contact_info FOR SELECT USING (true);
+CREATE POLICY "Admin Update ContactInfo" ON contact_info FOR UPDATE TO authenticated USING (true);
 
-CREATE POLICY "Allow authenticated insert" ON tech_stack FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow authenticated update" ON tech_stack FOR UPDATE USING (true);
-CREATE POLICY "Allow authenticated delete" ON tech_stack FOR DELETE USING (true);
+-- ABOUT INFO
+CREATE POLICY "Public Read AboutInfo" ON about_info FOR SELECT USING (true);
+CREATE POLICY "Admin Insert AboutInfo" ON about_info FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Admin Update AboutInfo" ON about_info FOR UPDATE TO authenticated USING (true);
 
-CREATE POLICY "Allow authenticated update" ON contact_info FOR UPDATE USING (true);
-CREATE POLICY "Allow authenticated update" ON about_info FOR UPDATE USING (true);
+-- CONTACT MESSAGES (Public can insert, Admin can read/update/delete)
+CREATE POLICY "Public Insert ContactMessages" ON contact_messages FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admin Read ContactMessages" ON contact_messages FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Admin Update ContactMessages" ON contact_messages FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Admin Delete ContactMessages" ON contact_messages FOR DELETE TO authenticated USING (true);
 
-CREATE POLICY "Allow authenticated read" ON messages FOR SELECT USING (true);
-CREATE POLICY "Allow authenticated delete" ON messages FOR DELETE USING (true);
+-- VISITOR ANALYTICS
+CREATE POLICY "Public Insert Analytics" ON visitor_analytics FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public Update Analytics" ON visitor_analytics FOR UPDATE USING (true);
+CREATE POLICY "Admin Read Analytics" ON visitor_analytics FOR SELECT TO authenticated USING (true);
 
-CREATE POLICY "Allow authenticated read" ON contact_messages FOR SELECT USING (true);
-CREATE POLICY "Allow authenticated update" ON contact_messages FOR UPDATE USING (true);
-CREATE POLICY "Allow authenticated delete" ON contact_messages FOR DELETE USING (true);
-
-CREATE POLICY "Allow authenticated read" ON admin_users FOR SELECT USING (true);
+-- PAGE VIEWS
+CREATE POLICY "Public Insert PageViews" ON page_views FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admin Read PageViews" ON page_views FOR SELECT TO authenticated USING (true);
 

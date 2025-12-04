@@ -58,8 +58,8 @@ const Navbar = () => {
     window.dispatchEvent(new Event('adminLoginSuccess'))
   }
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     setIsAdmin(false)
     // Trigger a custom event to notify other components
     window.dispatchEvent(new Event('adminLogout'))

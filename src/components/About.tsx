@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import AdminLogin from './AdminLogin'
-import { isAuthenticated } from '../utils/auth'
+import { isAuthenticated, logout } from '../utils/auth'
 import { getAboutContent, updateAboutContent, uploadImage, AboutContent } from '../services/api'
 import { getImageUrl } from '../utils/imageUtils'
 import { useToast } from '../hooks/useToast'
 import Toast from './Toast'
+import { supabase } from '../config/supabase'
 
 const About = () => {
   const [isEditMode, setIsEditMode] = useState(false)
@@ -13,41 +14,26 @@ const About = () => {
   const [, setIsAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const { toast, hideToast, success, error: showError } = useToast()
-  const [editableContent, setEditableContent] = useState<AboutContent>({
-    profileImage: "/profileNobg.png",
-    name: "M. Dzaka Al Fikri",
-    title: "Machine Learning Engineer",
-    subtitle: "Full Stack Developer",
-    location: "Yogyakarta, Indonesia",
-    certification: "Certified TensorFlow Developer",
-    availability: "Available for Full-time",
-    summary1: "Hi! I'm M. Dzaka Al Fikri, a passionate Machine Learning Engineer and Full Stack Developer specializing in creating intelligent, scalable solutions that bridge AI innovation with real-world applications.",
-    summary2: "As a Certified TensorFlow Developer, I bring expertise in deep learning, computer vision, and neural networks, combined with strong full-stack development skills. My approach focuses on delivering production-ready solutions using cutting-edge technologies like TensorFlow, React, Vue.js, and Google Cloud Platform.",
-    summary3: "With 20+ completed projects and 19 professional certifications from Coursera, DeepLearning.AI, and Google Cloud, I continuously expand my skill set to stay at the forefront of technology. I'm committed to transforming complex problems into elegant, efficient solutions.",
-    strengths: [
-      { icon: '🚀', text: 'Fast Learner' },
-      { icon: '🎯', text: 'Problem Solver' },
-      { icon: '🤝', text: 'Team Player' },
-      { icon: '💡', text: 'Innovative Thinker' },
-    ],
-    stats: [
-      { value: '20+', label: 'Projects', color: 'from-blue-400 to-cyan-400' },
-      { value: '19', label: 'Certificates', color: 'from-purple-400 to-pink-400' },
-      { value: '15+', label: 'Technologies', color: 'from-green-400 to-emerald-400' },
-      { value: '100%', label: 'Commitment', color: 'from-orange-400 to-red-400' },
-    ]
-  })
-
+  const [editableContent, setEditableContent] = useState<AboutContent>({} as AboutContent)
+  
+  // Use ref to always get latest content
+  const editableContentRef = useRef<AboutContent>(editableContent)
+  
+  // Update ref whenever editableContent changes
+  useEffect(() => {
+    editableContentRef.current = editableContent
+  }, [editableContent])
+  
   // Load content from API on mount
   useEffect(() => {
     loadContent()
+    
+    // Check if user is already authenticated (only on mount)
+    const isAuth = isAuthenticated()
+    setIsAdmin(isAuth)
   }, [])
 
   useEffect(() => {
-    setIsAdmin(isAuthenticated())
-    // Don't auto-enable edit mode
-    setIsEditMode(false)
-    
     // Listen for login/logout events from Navbar
     const handleLoginEvent = () => {
       setIsAdmin(true)
@@ -64,10 +50,14 @@ const About = () => {
       setIsEditMode(customEvent.detail.isEditMode)
     }
 
-    const handleSaveEvent = () => {
-      if (isEditMode) {
-        handleSaveChanges()
-      }
+    const handleSaveEvent = async () => {
+      // Use callback form to get latest state
+      setIsEditMode(currentMode => {
+        if (currentMode) {
+          handleSaveChangesWithContent(editableContentRef.current)
+        }
+        return currentMode
+      })
     }
     
     window.addEventListener('adminLoginSuccess', handleLoginEvent)
@@ -126,17 +116,29 @@ const About = () => {
     }
   }
 
-  const handleContentChange = (field: string, value: string) => {
+  const handleContentChange = (field: keyof AboutContent, value: string) => {
     setEditableContent(prev => ({
       ...prev,
       [field]: value
     }))
   }
 
-  const handleSaveChanges = async () => {
+  const handleSaveChangesWithContent = async (contentToSave: AboutContent) => {
     try {
       setIsLoading(true)
-      await updateAboutContent(editableContent)
+      
+      // Check authentication session
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        showError('❌ Sesi login habis. Silakan login ulang.')
+        await logout()
+        setIsAdmin(false)
+        setIsEditMode(false)
+        setShowLoginModal(true)
+        return
+      }
+
+      await updateAboutContent(contentToSave)
       setIsEditMode(false)
       success('✅ Perubahan berhasil disimpan ke database!')
     } catch (err) {
@@ -401,12 +403,7 @@ const About = () => {
                   ) : (
                     <>
                       <p>
-                        {editableContent.summary1.split(' ').map((word, i) => {
-                          if (['M. Dzaka Al Fikri', 'Machine Learning Engineer', 'Full Stack Developer'].some(highlight => editableContent.summary1.includes(highlight) && word.includes(highlight.split(' ')[0]))) {
-                            return <span key={i} className="text-white font-semibold">{word} </span>
-                          }
-                          return word + ' '
-                        })}
+                        {editableContent.summary1}
                       </p>
                       <p>
                         {editableContent.summary2}

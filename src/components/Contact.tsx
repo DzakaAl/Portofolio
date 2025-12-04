@@ -214,7 +214,7 @@ const Contact = () => {
                   {isEditMode && editedContactInfo ? (
                     <input
                       type="email"
-                      value={editedContactInfo.email}
+                      value={editedContactInfo.email || ''}
                       onChange={(e) => setEditedContactInfo({ ...editedContactInfo, email: e.target.value })}
                       onBlur={handleContactFieldBlur}
                       className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-sm focus:border-blue-500 focus:outline-none"
@@ -244,7 +244,7 @@ const Contact = () => {
                   {isEditMode && editedContactInfo ? (
                     <input
                       type="text"
-                      value={editedContactInfo.location}
+                      value={editedContactInfo.location || ''}
                       onChange={(e) => setEditedContactInfo({ ...editedContactInfo, location: e.target.value })}
                       onBlur={handleContactFieldBlur}
                       className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-sm focus:border-blue-500 focus:outline-none"
@@ -269,7 +269,7 @@ const Contact = () => {
                     <Github size={20} className="text-gray-400" />
                     <input
                       type="url"
-                      value={editedContactInfo.github}
+                      value={editedContactInfo.github || ''}
                       onChange={(e) => setEditedContactInfo({ ...editedContactInfo, github: e.target.value })}
                       onBlur={handleContactFieldBlur}
                       placeholder="GitHub URL"
@@ -282,7 +282,7 @@ const Contact = () => {
                     <Linkedin size={20} className="text-gray-400" />
                     <input
                       type="url"
-                      value={editedContactInfo.linkedin}
+                      value={editedContactInfo.linkedin || ''}
                       onChange={(e) => setEditedContactInfo({ ...editedContactInfo, linkedin: e.target.value })}
                       onBlur={handleContactFieldBlur}
                       placeholder="LinkedIn URL"
@@ -295,7 +295,7 @@ const Contact = () => {
                     <Twitter size={20} className="text-gray-400" />
                     <input
                       type="url"
-                      value={editedContactInfo.twitter}
+                      value={editedContactInfo.twitter || ''}
                       onChange={(e) => setEditedContactInfo({ ...editedContactInfo, twitter: e.target.value })}
                       onBlur={handleContactFieldBlur}
                       placeholder="Twitter URL"
@@ -308,7 +308,7 @@ const Contact = () => {
                     <Instagram size={20} className="text-gray-400" />
                     <input
                       type="url"
-                      value={editedContactInfo.instagram}
+                      value={editedContactInfo.instagram || ''}
                       onChange={(e) => setEditedContactInfo({ ...editedContactInfo, instagram: e.target.value })}
                       onBlur={handleContactFieldBlur}
                       placeholder="Instagram URL"
@@ -321,7 +321,7 @@ const Contact = () => {
                     <Globe size={20} className="text-gray-400" />
                     <input
                       type="url"
-                      value={editedContactInfo.website}
+                      value={editedContactInfo.website || ''}
                       onChange={(e) => setEditedContactInfo({ ...editedContactInfo, website: e.target.value })}
                       onBlur={handleContactFieldBlur}
                       placeholder="Website URL"

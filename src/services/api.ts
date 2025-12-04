@@ -529,81 +529,150 @@ export interface AboutInfo {
 }
 
 export const getAboutInfo = async (): Promise<AboutInfo | null> => {
-  const { data, error } = await supabase
+  // First try to get the row with id=1 (standard)
+  let { data, error } = await supabase
     .from('about_info')
     .select('*')
+    .eq('id', 1)
     .single()
 
-  if (error) {
-    return null
+  // If not found (maybe using old ID), try to get ANY row
+  if (error || !data) {
+    console.log('About info with id=1 not found, trying fallback...')
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from('about_info')
+      .select('*')
+      .limit(1)
+      .single()
+      
+    if (!fallbackError && fallbackData) {
+      data = fallbackData
+      // If we found a row with wrong ID, we should probably migrate it to ID=1 next time we save
+      console.log('Found fallback about info:', data)
+    } else {
+      return null
+    }
   }
 
-  // Convert snake_case to camelCase
-  return toCamelCase(data)
+  // Manual conversion to preserve JSONB structure
+  if (data) {
+    return {
+      id: data.id,
+      profileImage: data.profile_image,
+      name: data.name,
+      title: data.title,
+      subtitle: data.subtitle,
+      location: data.location,
+      certification: data.certification,
+      availability: data.availability,
+      summary1: data.summary1,
+      summary2: data.summary2,
+      summary3: data.summary3,
+      // JSONB fields - keep structure as-is
+      strengths: data.strengths,
+      stats: data.stats,
+      updated_at: data.updated_at
+    }
+  }
+
+  return null
 }
 
 export const updateAboutInfo = async (aboutInfo: Partial<AboutInfo>): Promise<AboutInfo> => {
-  // Convert camelCase to snake_case for database
-  const dbAboutInfo = toSnakeCase(aboutInfo)
+  // Manual conversion to avoid deep conversion on JSONB fields
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dbAboutInfo: any = {}
   
-  // Always update the first row (id = 1)
+  if (aboutInfo.profileImage !== undefined) dbAboutInfo.profile_image = aboutInfo.profileImage
+  if (aboutInfo.name !== undefined) dbAboutInfo.name = aboutInfo.name
+  if (aboutInfo.title !== undefined) dbAboutInfo.title = aboutInfo.title
+  if (aboutInfo.subtitle !== undefined) dbAboutInfo.subtitle = aboutInfo.subtitle
+  if (aboutInfo.location !== undefined) dbAboutInfo.location = aboutInfo.location
+  if (aboutInfo.certification !== undefined) dbAboutInfo.certification = aboutInfo.certification
+  if (aboutInfo.availability !== undefined) dbAboutInfo.availability = aboutInfo.availability
+  if (aboutInfo.summary1 !== undefined) dbAboutInfo.summary1 = aboutInfo.summary1
+  if (aboutInfo.summary2 !== undefined) dbAboutInfo.summary2 = aboutInfo.summary2
+  if (aboutInfo.summary3 !== undefined) dbAboutInfo.summary3 = aboutInfo.summary3
+  // Keep JSONB fields as-is (don't convert nested keys)
+  if (aboutInfo.strengths !== undefined) dbAboutInfo.strengths = aboutInfo.strengths
+  if (aboutInfo.stats !== undefined) dbAboutInfo.stats = aboutInfo.stats
+
+  // Upsert row with id = 1 to guarantee existence
   const { data, error } = await supabase
     .from('about_info')
-    .update(dbAboutInfo)
-    .eq('id', 1)
+    .upsert([{ id: 1, ...dbAboutInfo }], { onConflict: 'id' })
     .select()
     .single()
 
   if (error) throw error
-  
-  // Convert snake_case back to camelCase
-  return toCamelCase(data)
+
+  if (data) {
+    return {
+      id: data.id,
+      profileImage: data.profile_image,
+      name: data.name,
+      title: data.title,
+      subtitle: data.subtitle,
+      location: data.location,
+      certification: data.certification,
+      availability: data.availability,
+      summary1: data.summary1,
+      summary2: data.summary2,
+      summary3: data.summary3,
+      strengths: data.strengths,
+      stats: data.stats,
+      updated_at: data.updated_at
+    }
+  }
+
+  throw new Error('Failed to update about info')
 }
 
 // ==================== AUTHENTICATION ====================
 export interface LoginCredentials {
-  username: string
+  email: string
   password: string
 }
 
 export interface LoginResponse {
   success: boolean
   user: {
-    id: number
-    username: string
+    id: string
     email: string
-  }
+  } | null
+  error?: string
 }
 
 export const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
-  const { data, error } = await supabase
-    .from('admin_users')
-    .select('*')
-    .eq('username', credentials.username)
-    .single()
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: credentials.email,
+    password: credentials.password,
+  })
 
-  if (error || !data) {
-    throw new Error('Username atau password salah')
-  }
-
-  // Simple password comparison (plain text or bcrypt hash both work)
-  // If password starts with $2a$ or $2b$, it's bcrypt hash (just compare directly for now)
-  // For production, use Supabase Auth instead
-  const isMatch = data.password === credentials.password || 
-                  data.password.startsWith('$2') // Bcrypt hashes start with $2a$ or $2b$
-  
-  if (!isMatch) {
-    throw new Error('Username atau password salah')
+  if (error) {
+    return {
+      success: false,
+      user: null,
+      error: error.message
+    }
   }
 
   return {
     success: true,
     user: {
-      id: data.id,
-      username: data.username,
-      email: data.email || ''
+      id: data.user.id,
+      email: data.user.email || ''
     }
   }
+}
+
+export const logout = async (): Promise<void> => {
+  await supabase.auth.signOut()
+}
+
+export const getCurrentUser = async () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  return user
 }
 
 // ==================== ALIASES FOR COMPATIBILITY ====================
@@ -643,50 +712,23 @@ export interface AboutContent {
 // Wrapper functions to convert between AboutInfo and AboutContent
 export const getAboutContent = async (): Promise<AboutContent> => {
   const info = await getAboutInfo()
-  if (!info) {
-    // Return default content
-    return {
-      profileImage: '/profileNobg.png',
-      name: 'M. Dzaka Al Fikri',
-      title: 'Machine Learning Engineer',
-      subtitle: 'Full Stack Developer',
-      location: 'Yogyakarta, Indonesia',
-      certification: 'Certified TensorFlow Developer',
-      availability: 'Available for Full-time',
-      summary1: "Hi! I'm M. Dzaka Al Fikri, a passionate Machine Learning Engineer and Full Stack Developer specializing in creating intelligent, scalable solutions that bridge AI innovation with real-world applications.",
-      summary2: "As a Certified TensorFlow Developer, I bring expertise in deep learning, computer vision, and neural networks, combined with strong full-stack development skills. My approach focuses on delivering production-ready solutions using cutting-edge technologies like TensorFlow, React, Vue.js, and Google Cloud Platform.",
-      summary3: "With 20+ completed projects and 19 professional certifications from Coursera, DeepLearning.AI, and Google Cloud, I continuously expand my skill set to stay at the forefront of technology. I'm committed to transforming complex problems into elegant, efficient solutions.",
-      strengths: [
-        { icon: '🚀', text: 'Fast Learner' },
-        { icon: '🎯', text: 'Problem Solver' },
-        { icon: '🤝', text: 'Team Player' },
-        { icon: '💡', text: 'Innovative Thinker' },
-      ],
-      stats: [
-        { value: '20+', label: 'Projects', color: 'from-blue-400 to-cyan-400' },
-        { value: '19', label: 'Certificates', color: 'from-purple-400 to-pink-400' },
-        { value: '15+', label: 'Technologies', color: 'from-green-400 to-emerald-400' },
-        { value: '100%', label: 'Commitment', color: 'from-orange-400 to-red-400' },
-      ]
-    }
-  }
   
-  // Direct mapping from new structure
+  // Direct mapping from new structure, with null check
   return {
-    id: info.id?.toString(),
-    profileImage: info.profileImage || '/profileNobg.png',
-    name: info.name,
-    title: info.title,
-    subtitle: info.subtitle || '',
-    location: info.location || '',
-    certification: info.certification || '',
-    availability: info.availability || '',
-    summary1: info.summary1 || '',
-    summary2: info.summary2 || '',
-    summary3: info.summary3 || '',
-    strengths: info.strengths || [],
-    stats: info.stats || [],
-    updatedAt: info.updated_at
+    id: info?.id?.toString(),
+    profileImage: info?.profileImage || ' ',
+    name: info?.name || '',
+    title: info?.title || '',
+    subtitle: info?.subtitle || '',
+    location: info?.location || '',
+    certification: info?.certification || '',
+    availability: info?.availability || '',
+    summary1: info?.summary1 || '',
+    summary2: info?.summary2 || '',
+    summary3: info?.summary3 || '',
+    strengths: info?.strengths || [],
+    stats: info?.stats || [],
+    updatedAt: info?.updated_at
   }
 }
 
@@ -707,6 +749,7 @@ export const updateAboutContent = async (content: AboutContent): Promise<AboutCo
   }
   
   await updateAboutInfo(aboutInfo)
+  
   return content
 }
 

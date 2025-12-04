@@ -1,10 +1,13 @@
 // Authentication utility functions
 
+import { logout as apiLogout } from '../services/api'
+
 export const isAuthenticated = (): boolean => {
   return localStorage.getItem('portfolio_admin_auth') === 'true'
 }
 
-export const logout = (): void => {
+export const logout = async (): Promise<void> => {
+  await apiLogout()
   localStorage.removeItem('portfolio_admin_auth')
   localStorage.removeItem('portfolio_admin_user')
   window.dispatchEvent(new Event('adminLogout'))
