@@ -513,9 +513,18 @@ export const deleteMessage = async (id: number): Promise<void> => {
 // ==================== ABOUT INFO ====================
 export interface AboutInfo {
   id?: number
+  profileImage?: string
+  name: string
   title: string
-  content: string
-  skills: string
+  subtitle?: string
+  location?: string
+  certification?: string
+  availability?: string
+  summary1?: string
+  summary2?: string
+  summary3?: string
+  strengths?: Array<{ icon: string; text: string }>
+  stats?: Array<{ value: string; label: string; color: string }>
   updated_at?: string
 }
 
@@ -662,58 +671,39 @@ export const getAboutContent = async (): Promise<AboutContent> => {
     }
   }
   
-  // Parse JSON strings
-  try {
-    const content = JSON.parse(info.content)
-    const skills = JSON.parse(info.skills)
-    return {
-      ...content,
-      id: info.id?.toString(),
-      title: info.title,
-      updatedAt: info.updated_at,
-      // Merge skills if needed
-      strengths: content.strengths || skills.strengths || [],
-      stats: content.stats || skills.stats || []
-    }
-  } catch {
-    // If parsing fails, return default
-    return {
-      profileImage: '/profileNobg.png',
-      name: 'M. Dzaka Al Fikri',
-      title: info.title || 'Full Stack Developer',
-      subtitle: 'Machine Learning Engineer',
-      location: 'Yogyakarta, Indonesia',
-      certification: 'Certified TensorFlow Developer',
-      availability: 'Available for Full-time',
-      summary1: info.content || '',
-      summary2: '',
-      summary3: '',
-      strengths: [],
-      stats: []
-    }
+  // Direct mapping from new structure
+  return {
+    id: info.id?.toString(),
+    profileImage: info.profileImage || '/profileNobg.png',
+    name: info.name,
+    title: info.title,
+    subtitle: info.subtitle || '',
+    location: info.location || '',
+    certification: info.certification || '',
+    availability: info.availability || '',
+    summary1: info.summary1 || '',
+    summary2: info.summary2 || '',
+    summary3: info.summary3 || '',
+    strengths: info.strengths || [],
+    stats: info.stats || [],
+    updatedAt: info.updated_at
   }
 }
 
 export const updateAboutContent = async (content: AboutContent): Promise<AboutContent> => {
   const aboutInfo: Partial<AboutInfo> = {
+    profileImage: content.profileImage,
+    name: content.name,
     title: content.title,
-    content: JSON.stringify({
-      profileImage: content.profileImage,
-      name: content.name,
-      subtitle: content.subtitle,
-      location: content.location,
-      certification: content.certification,
-      availability: content.availability,
-      summary1: content.summary1,
-      summary2: content.summary2,
-      summary3: content.summary3,
-      strengths: content.strengths,
-      stats: content.stats
-    }),
-    skills: JSON.stringify({
-      strengths: content.strengths,
-      stats: content.stats
-    })
+    subtitle: content.subtitle,
+    location: content.location,
+    certification: content.certification,
+    availability: content.availability,
+    summary1: content.summary1,
+    summary2: content.summary2,
+    summary3: content.summary3,
+    strengths: content.strengths,
+    stats: content.stats
   }
   
   await updateAboutInfo(aboutInfo)

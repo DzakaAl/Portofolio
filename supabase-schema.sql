@@ -97,9 +97,18 @@ CREATE TABLE IF NOT EXISTS messages (
 -- 6. About Info Table
 CREATE TABLE IF NOT EXISTS about_info (
   id BIGSERIAL PRIMARY KEY,
+  profile_image TEXT,
+  name TEXT NOT NULL,
   title TEXT NOT NULL,
-  content TEXT NOT NULL,
-  skills TEXT NOT NULL,
+  subtitle TEXT,
+  location TEXT,
+  certification TEXT,
+  availability TEXT,
+  summary1 TEXT,
+  summary2 TEXT,
+  summary3 TEXT,
+  strengths JSONB, -- Array of {icon, text}
+  stats JSONB, -- Array of {value, label, color}
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
