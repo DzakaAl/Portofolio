@@ -867,7 +867,7 @@ const Portfolio = () => {
               )}
 
               {/* Tech Box */}
-              <div className="bg-[#1E293B]/80 backdrop-blur-sm rounded-2xl p-6 sm:p-8 text-center cursor-pointer relative overflow-hidden transition-all duration-300 hover:bg-[#1E293B] hover:scale-105 hover:shadow-2xl hover:shadow-primary-500/20 border border-gray-700/50 hover:border-primary-500/50">
+              <div className="glass-effect rounded-2xl p-6 sm:p-8 text-center cursor-pointer relative overflow-hidden transition-all duration-300 hover:bg-[#1E293B] hover:scale-105 hover:shadow-2xl hover:shadow-primary-500/20 border border-gray-700/50 hover:border-primary-500/50">
                 {/* Tech Icon - SVG */}
                 <div className="mx-auto mb-4 flex items-center justify-center">
                   {tech.icon && tech.icon.trim().startsWith('<svg') ? (
