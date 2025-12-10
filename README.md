@@ -8,7 +8,7 @@
 
 Sebuah website portofolio modern dan interaktif dibuat dengan React + TypeScript, Tailwind CSS, dan Supabase. Menyertakan panel admin untuk manajemen konten, inbox pesan, serta fitur CRUD untuk proyek, sertifikat, dan tech stack.
 
-Live demo: https://dzakaal.github.io/Portofolio/
+Live demo: https://dzakaal.site/
 
 ---
 
@@ -144,7 +144,8 @@ Catatan: Jangan gunakan password sederhana di production — gunakan sistem auth
 - Jika gambar tidak muncul, periksa bucket storage & permission di Supabase.
 - Cek console browser & network untuk error API.
 - Untuk deployment CI, pastikan env variables ditambahkan pada Secrets repository.
-
+
+
 ---
 
 ## 👤 Penulis
@@ -155,4 +156,4 @@ M. Dzaka Al Fikri
 - Instagram: https://www.instagram.com/moredzl/  
 - Email: dzakaal20@gmail.com
 
----
+---
