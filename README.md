@@ -1,159 +1,195 @@
-# 🚀 Portfolio — M. Dzaka Al Fikri
+# Portfolio Fullstack (Next.js + MySQL + Socket.IO)
 
-![React](https://img.shields.io/badge/React-18.2-blue?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.3-38bdf8?logo=tailwind-css)
-![Vite](https://img.shields.io/badge/Vite-4.5-646cff?logo=vite)
-![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?logo=supabase)
+Website portfolio fullstack berbasis Next.js App Router dengan:
 
-Sebuah website portofolio modern dan interaktif dibuat dengan React + TypeScript, Tailwind CSS, dan Supabase. Menyertakan panel admin untuk manajemen konten, inbox pesan, serta fitur CRUD untuk proyek, sertifikat, dan tech stack.
+- Halaman publik (hero, about, portfolio, chat, contact)
+- Admin panel untuk mengelola konten
+- API route internal Next.js (tanpa backend terpisah)
+- Realtime chat via Socket.IO pada custom server
+- Penyimpanan data di MySQL
 
-Live demo: https://dzakaal.site/
+## Fitur Utama
 
----
+### Publik
 
-## ✨ Fitur utama
+- Welcome/Hero section dinamis
+- About, projects, certificates, tech stack
+- Contact form ke database
+- Realtime chat (Google OAuth)
 
-Untuk pengunjung:
-- Tampilan responsif (mobile/tablet/desktop)
-- Tema gelap (dark theme)
-- Animasi halus dengan Framer Motion
-- Menampilkan proyek, sertifikat, dan tech stack
-- Form kontak dengan validasi dan pengiriman pesan
+### Admin
 
-Untuk admin:
-- Login aman (password berbasis env variable)
-- Mode edit untuk memperbarui About, Portfolio, Contact secara real-time
-- CRUD untuk proyek dan sertifikat (dengan upload gambar)
-- Manajemen tech stack (ikon + warna + profisiensi)
-- Inbox pesan dengan pencarian & filter
-- Notifikasi (toast) dan dialog konfirmasi untuk operasi sensitif
+- Login admin berbasis JWT
+- CRUD hero, about, projects, certificates, tech stack
+- Kelola pesan masuk
+- Visitor analytics
+- Upload file (gambar/PDF)
 
----
+## Stack Teknologi
 
-## 🛠️ Teknologi
-
-Frontend:
-- React 18 + TypeScript
-- Vite
-- Tailwind CSS
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS + shadcn/ui
+- NextAuth (Google provider)
+- Socket.IO
+- MySQL (mysql2)
 - Framer Motion
-- Lucide (ikon)
 
-Backend / Database:
-- Supabase (Postgres, storage, RLS, realtime)
+## Struktur Proyek
 
----
-
-## 📦 Persiapan & Instalasi (Singkat)
-
-Sebelum mulai, pastikan Node.js ≥ 16 dan npm atau yarn sudah terpasang.
-
-1. Clone repo
-```bash
-git clone https://github.com/DzakaAl/Portofolio.git
-cd Portofolio
+```
+.
+├── server.js                # Custom Next.js server + Socket.IO
+├── src/
+│   ├── app/
+│   │   ├── page.tsx         # Landing page
+│   │   ├── admin/           # Admin pages
+│   │   └── api/             # API routes (hero, projects, dll)
+│   ├── components/
+│   │   ├── sections/        # Public sections
+│   │   ├── admin/           # Admin components
+│   │   ├── reactbits/       # Animated components
+│   │   └── ui/              # shadcn/ui primitives
+│   ├── lib/
+│   │   ├── db.ts            # MySQL connection pool
+│   │   ├── auth.ts          # NextAuth options
+│   │   ├── server-auth.ts   # JWT admin helper
+│   │   ├── api.ts           # Frontend API client
+│   │   └── socket.ts        # Socket client
+│   └── types/
+└── public/uploads/          # Runtime uploaded files
 ```
 
-2. Install dependency
+## Prasyarat
+
+- Node.js 18+
+- MySQL 8+
+
+## Setup Lokal
+
+1. Install dependency:
+
 ```bash
 npm install
-# atau
-# yarn
 ```
 
-3. Buat file `.env` di root (contoh minimal)
-```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_ADMIN_PASSWORD=your_admin_password
-```
-Jangan commit `.env` ke repository.
+2. Siapkan file environment:
 
-4. Jalankan development server
+```bash
+cp .env.example .env.local
+```
+
+Di Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+3. Buat database MySQL:
+
+```sql
+CREATE DATABASE portofolio CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+4. Jalankan app:
+
 ```bash
 npm run dev
-# atau
-# yarn dev
 ```
 
-5. Build untuk produksi
+5. Buka browser di:
+
+http://localhost:3000
+
+## Environment Variables
+
+Semua variabel sudah disiapkan di file .env.example.
+
+| Variable | Wajib | Keterangan |
+| --- | --- | --- |
+| DB_HOST | Ya | Host MySQL |
+| DB_USER | Ya | User MySQL |
+| DB_PASSWORD | Ya | Password MySQL |
+| DB_NAME | Ya | Nama database (default: portofolio) |
+| DB_PORT | Tidak | Port MySQL (default: 3306) |
+| NEXTAUTH_URL | Ya | URL aplikasi (misal: http://localhost:3000) |
+| NEXTAUTH_SECRET | Ya | Secret NextAuth |
+| GOOGLE_CLIENT_ID | Ya (untuk chat login) | OAuth client id |
+| GOOGLE_CLIENT_SECRET | Ya (untuk chat login) | OAuth client secret |
+| JWT_SECRET | Ya | Secret token admin |
+| JWT_EXPIRE | Tidak | Masa berlaku token (default: 24h) |
+| ADMIN_USERNAME | Ya | Username admin |
+| ADMIN_PASSWORD | Ya | Password admin |
+| NEXT_PUBLIC_API_URL | Tidak | Default sudah /api |
+| NEXT_PUBLIC_SOCKET_URL | Tidak | URL socket server |
+| HOSTNAME | Tidak | Host server (default: localhost) |
+| PORT | Tidak | Port server (default: 3000) |
+| UPLOAD_DIR | Tidak | Lokasi file upload |
+| ALLOWED_ORIGINS | Tidak | Daftar origin CORS (pisahkan dengan koma) |
+
+## Tabel Database yang Dipakai
+
+Pastikan tabel berikut tersedia:
+
+- hero_content
+- about_content
+- projects
+- certificates
+- tech_stack
+- contact_info
+- messages
+- visitor_stats
+- chat_messages
+
+## Login Admin Default
+
+Jika variabel env belum diisi, fallback login ada di API:
+
+- Username: admin
+- Password: admin123
+
+Sebaiknya selalu override via .env.local sebelum deploy/upload.
+
+## Script NPM
+
+- npm run dev: jalankan custom server untuk development
+- npm run build: build Next.js
+- npm run start: jalankan production server
+- npm run lint: lint project
+
+## Panduan Upload ke GitHub
+
+1. Pastikan file rahasia tidak ikut commit:
+
+- .env
+- .env.local
+- file upload runtime di public/uploads
+
+2. Cek status file sebelum commit:
+
 ```bash
-npm run build
-# preview
-npm run preview
+git status
 ```
 
----
+3. Jika file rahasia pernah terlanjur ter-track:
 
-## 🔧 Setup Supabase (singkat)
-
-1. Buat project di https://supabase.com
-2. Dari Project → API, salin URL & ANON KEY ke `.env`
-3. Buat storage bucket `images` (public jika diperlukan) untuk menyimpan gambar proyek/sertifikat
-4. Buat tabel sesuai kebutuhan: about_info, portfolio_projects, certificates, tech_stack, contact_info, contact_messages. Gunakan migration SQL atau dashboard SQL editor. Pastikan RLS policy dan role sesuai kalau menggunakan production.
-
-Catatan: dokumentasi struktur tabel tersedia di folder `server/schema.sql` (jika ada). Jika menggunakan Supabase, gunakan UUID dan row-level security untuk production.
-
----
-
-## 🗂️ Struktur proyek (ringkasan)
-- public/ — aset statis (404.html, CV)
-- src/
-  - components/ — komponen React (About, Hero, Portfolio, AdminPanel, dll.)
-  - config/ — konfigurasi Supabase
-  - services/ — pemanggilan API / supabase
-  - utils/ — utilitas (auth, image utils)
-  - App.tsx, main.tsx
-- server/ (opsional) — API backend / migration SQL
-- .github/workflows/ — GitHub Actions deployment
-
----
-
-## 🚀 Deployment
-
-Pilihan deployment:
-- GitHub Pages (dengan action yang ada): set `base` di `vite.config.ts` ke `/Portofolio/`
-- Vercel / Netlify: atur environment variables di dashboard deployment
-
-Contoh langkah singkat GitHub Pages:
-1. Pastikan `vite.config.ts` berisi:
-```ts
-export default defineConfig({
-  base: '/Portofolio/',
-  // ...
-})
+```bash
+git rm --cached .env .env.local
+git rm --cached -r public/uploads
 ```
-2. Push ke `main` dan workflow akan build & deploy (jika workflow sudah terpasang).
 
----
+4. Commit dan push:
 
-## ✅ Petunjuk Admin singkat
+```bash
+git add .
+git commit -m "docs: improve README and github upload guidance"
+git branch -M main
+git remote add origin https://github.com/USERNAME/REPO.git
+git push -u origin main
+```
 
-- Login: klik ikon kunci di navbar → masukkan password yang sesuai `VITE_ADMIN_PASSWORD`
-- Masuk ke Edit Mode → bisa mengubah konten langsung di UI → klik Save
-- Kelola proyek/sertifikat melalui modal CRUD (upload gambar ke Supabase storage)
+## Catatan Deploy
 
-Catatan: Jangan gunakan password sederhana di production — gunakan sistem auth (JWT/Providers) untuk keamanan lebih baik.
-
----
-
-## 💡 Tips & Troubleshooting
-
-- Jika routing SPA di GitHub Pages bermasalah, pastikan `public/404.html` tersedia (redirect ke index.html).
-- Jika gambar tidak muncul, periksa bucket storage & permission di Supabase.
-- Cek console browser & network untuk error API.
-- Untuk deployment CI, pastikan env variables ditambahkan pada Secrets repository.
-
-
----
-
-## 👤 Penulis
-
-M. Dzaka Al Fikri  
-- GitHub: https://github.com/DzakaAl  
-- LinkedIn: https://www.linkedin.com/in/m-dzaka-al-fikri-7bba421a4/  
-- Instagram: https://www.instagram.com/moredzl/  
-- Email: dzakaal20@gmail.com
-
----
+- Project ini menggunakan custom server + MySQL + Socket.IO.
+- Arsitektur ini tidak cocok untuk GitHub Pages static hosting.
+- Workflow [.github/workflows/deploy.yml](.github/workflows/deploy.yml) saat ini masih pola build static lama (Vite/GitHub Pages). Sesuaikan atau nonaktifkan jika tidak dipakai.

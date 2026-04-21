@@ -1,0 +1,177 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Floating orb animation for SectionBackground */
+@keyframes float-orb {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+  50% {
+    transform: translate(-20px, 15px) scale(0.95);
+  }
+  75% {
+    transform: translate(15px, 25px) scale(1.02);
+  }
+}
+.animate-float-orb {
+  animation: float-orb 18s ease-in-out infinite;
+}
+
+@layer base {
+  :root {
+    /* ── Base ── */
+    --background: 220 20% 97%;
+    --foreground: 224 40% 14%;
+
+    /* ── Surfaces ── */
+    --card: 0 0% 100%;
+    --card-foreground: 224 40% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 40% 14%;
+
+    /* ── Primary (Blue) ── */
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    /* ── Secondary ── */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 224 40% 14%;
+
+    /* ── Muted ── */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    /* ── Accent ── */
+    --accent: 213 94% 95%;
+    --accent-foreground: 221 83% 45%;
+
+    /* ── Destructive ── */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* ── Utility ── */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
+
+    /* ── Charts ── */
+    --chart-1: 221 83% 53%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+
+    /* ── Extended Semantic Tokens ── */
+    --heading-accent: 221 83% 53%;
+    --gradient-from: 221 83% 53%;
+    --gradient-to: 263 70% 58%;
+    --link: 221 83% 50%;
+    --link-hover: 221 83% 42%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+    --surface-elevated: 220 20% 99%;
+    --surface-sunken: 220 14% 96%;
+    --card-border: 213 40% 86%;
+    --card-shadow: 220 60% 90%;
+    --card-hover-border: 213 60% 76%;
+    --badge-bg: 213 94% 95%;
+    --badge-text: 221 83% 45%;
+    --badge-border: 213 60% 86%;
+    --nav-bg: 0 0% 100%;
+    --section-alt-bg: 220 20% 98%;
+    --text-primary: 224 40% 14%;
+    --text-secondary: 220 9% 40%;
+    --text-tertiary: 220 9% 56%;
+    --icon-muted: 220 9% 56%;
+    --divider: 220 13% 91%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* ── Base ── */
+    --background: 224 50% 6%;
+    --foreground: 210 30% 94%;
+
+    /* ── Surfaces ── */
+    --card: 224 44% 9%;
+    --card-foreground: 210 30% 94%;
+    --popover: 224 44% 9%;
+    --popover-foreground: 210 30% 94%;
+
+    /* ── Primary (Blue) ── */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    /* ── Secondary ── */
+    --secondary: 224 30% 15%;
+    --secondary-foreground: 210 30% 94%;
+
+    /* ── Muted ── */
+    --muted: 224 30% 15%;
+    --muted-foreground: 218 15% 58%;
+
+    /* ── Accent ── */
+    --accent: 217 50% 16%;
+    --accent-foreground: 213 94% 72%;
+
+    /* ── Destructive ── */
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* ── Utility ── */
+    --border: 224 30% 16%;
+    --input: 224 30% 16%;
+    --ring: 217 91% 60%;
+
+    /* ── Charts ── */
+    --chart-1: 217 91% 60%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+
+    /* ── Extended Semantic Tokens ── */
+    --heading-accent: 213 94% 68%;
+    --gradient-from: 213 94% 68%;
+    --gradient-to: 263 70% 68%;
+    --link: 213 94% 68%;
+    --link-hover: 213 94% 78%;
+    --success: 142 71% 55%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 56%;
+    --warning-foreground: 0 0% 100%;
+    --info: 199 89% 58%;
+    --info-foreground: 0 0% 100%;
+    --surface-elevated: 224 40% 11%;
+    --surface-sunken: 224 50% 5%;
+    --card-border: 224 30% 18%;
+    --card-shadow: 224 60% 4%;
+    --card-hover-border: 217 50% 30%;
+    --badge-bg: 217 50% 16%;
+    --badge-text: 213 94% 72%;
+    --badge-border: 217 40% 24%;
+    --nav-bg: 224 50% 7%;
+    --section-alt-bg: 224 46% 7%;
+    --text-primary: 210 30% 94%;
+    --text-secondary: 218 15% 65%;
+    --text-tertiary: 218 15% 50%;
+    --icon-muted: 218 15% 50%;
+    --divider: 224 30% 16%;
+  }
+}
